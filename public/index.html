@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>WISETECH | Digital Services</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <script
+        src="https://js.paystack.co/v1/inline.js"
+    ></script>
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        WISE<span>TECH</span>
+    </div>
+
+    <nav>
+
+        <a href="#home">Home</a>
+
+        <a href="#data">Data</a>
+
+        <a href="#subscriptions">
+            Subscriptions
+        </a>
+
+        <a href="#contact">Contact</a>
+
+    </nav>
+
+    <button
+        class="cart-button"
+        onclick="openCart()"
+    >
+        🛒
+        <span id="cartCount">0</span>
+    </button>
+
+</header>
+
+<main>
+
+<section
+    id="home"
+    class="hero"
+>
+
+    <div class="hero-content">
+
+        <div class="badge">
+            WISETECH DIGITAL SERVICES
+        </div>
+
+        <h1>
+            Stay Connected.
+            <span>Stay Smart.</span>
+        </h1>
+
+        <p>
+            Affordable MTN data bundles and
+            premium digital services.
+        </p>
+
+        <a
+            href="#data"
+            class="primary-button"
+        >
+            Shop Now
+        </a>
+
+    </div>
+
+</section>
+
+<section id="data">
+
+    <div class="section-heading">
+
+        <p class="small-title">
+            MTN DATA
+        </p>
+
+        <h2>
+            Choose Your Data Bundle
+        </h2>
+
+        <p>
+            Select a package and place your order.
+        </p>
+
+    </div>
+
+    <div
+        id="dataProducts"
+        class="product-grid"
+    ></div>
+
+</section>
+
+<section
+    id="subscriptions"
+    class="dark-section"
+>
+
+    <div class="section-heading">
+
+        <p class="small-title">
+            PREMIUM SERVICES
+        </p>
+
+        <h2>
+            Premium Subscriptions
+        </h2>
+
+        <p>
+            Contact WISETECH for available
+            subscription options.
+        </p>
+
+    </div>
+
+    <div class="subscription-grid">
+
+        <div class="subscription-card">
+
+            <div class="service-icon">
+                N
+            </div>
+
+            <h3>Netflix</h3>
+
+            <p>
+                Streaming subscription.
+            </p>
+
+            <button
+                onclick="subscriptionOrder('Netflix Subscription')"
+            >
+                Order
+            </button>
+
+        </div>
+
+        <div class="subscription-card">
+
+            <div class="service-icon">
+                S
+            </div>
+
+            <h3>Spotify</h3>
+
+            <p>
+                Music subscription.
+            </p>
+
+            <button
+                onclick="subscriptionOrder('Spotify Subscription')"
+            >
+                Order
+            </button>
+
+        </div>
+
+        <div class="subscription-card">
+
+            <div class="service-icon">
+                +
+            </div>
+
+            <h3>Other Apps</h3>
+
+            <p>
+                Ask about available services.
+            </p>
+
+            <button
+                onclick="whatsappMessage('I want to ask about premium subscriptions.')"
+            >
+                Ask Us
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section id="contact">
+
+    <div class="contact-box">
+
+        <div>
+
+            <p class="small-title">
+                CONTACT WISETECH
+            </p>
+
+            <h2>
+                Need Help?
+            </h2>
+
+            <p>
+                Contact us on WhatsApp for
+                questions, subscriptions or
+                orders.
+            </p>
+
+        </div>
+
+        <button
+            class="whatsapp-button"
+            onclick="whatsappMessage('Hello WISETECH, I need some help.')"
+        >
+            WhatsApp Us
+        </button>
+
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+
+    <div class="logo">
+        WISE<span>TECH</span>
+    </div>
+
+    <p>
+        MTN Data • Premium Subscriptions
+        • Digital Services
+    </p>
+
+    <p>
+        WhatsApp:
+        <strong>0542665822</strong>
+    </p>
+
+    <p class="copyright">
+        © 2026 WISETECH
+    </p>
+
+</footer>
+
+<!-- CART -->
+
+<div
+    id="cartOverlay"
+    class="overlay"
+>
+
+    <div class="cart-panel">
+
+        <div class="cart-header">
+
+            <h2>
+                Your Cart
+            </h2>
+
+            <button
+                onclick="closeCart()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div id="cartItems"></div>
+
+        <div class="cart-total">
+
+            <span>Total</span>
+
+            <strong id="cartTotal">
+                GH₵0.00
+            </strong>
+
+        </div>
+
+        <button
+            class="checkout-button"
+            onclick="openCheckout()"
+        >
+            Checkout
+        </button>
+
+        <button
+            class="whatsapp-button full"
+            onclick="cartWhatsApp()"
+        >
+            Order Through WhatsApp
+        </button>
+
+    </div>
+
+</div>
+
+<!-- CHECKOUT -->
+
+<div
+    id="checkoutOverlay"
+    class="overlay"
+>
+
+    <div class="checkout-panel">
+
+        <div class="cart-header">
+
+            <h2>
+                Checkout
+            </h2>
+
+            <button
+                onclick="closeCheckout()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <input
+            id="customerName"
+            type="text"
+            placeholder="Full Name"
+        >
+
+        <input
+            id="customerPhone"
+            type="tel"
+            placeholder="MTN Number"
+        >
+
+        <input
+            id="customerEmail"
+            type="email"
+            placeholder="Email Address"
+        >
+
+        <p class="checkout-total">
+
+            Total:
+            <strong id="checkoutTotal">
+                GH₵0.00
+            </strong>
+
+        </p>
+
+        <button
+            class="checkout-button"
+            onclick="payNow()"
+        >
+            Pay with Paystack
+        </button>
+
+        <p class="secure-text">
+            🔒 Secure payment powered by Paystack
+        </p>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
