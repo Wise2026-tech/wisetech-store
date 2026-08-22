@@ -2282,3 +2282,244 @@ footer {
         font-size: 17px;
     }
 }
+/* =========================================================
+   WISETECH SUBSCRIPTION CARDS - FINAL FIX
+   ========================================================= */
+
+/* Subscription section */
+#subscriptions {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 70px 25px;
+    box-sizing: border-box;
+}
+
+/* Make the cards fill the available space */
+.subscription-grid,
+.subscriptions-grid,
+.subscription-cards {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+    align-items: stretch;
+}
+
+/* Individual subscription card */
+.subscription-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    background: linear-gradient(
+        145deg,
+        #071426,
+        #0b1d35
+    );
+
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 18px;
+
+    padding: 28px 24px;
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+
+    min-height: 420px;
+
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    transition: transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+}
+
+/* Hover effect */
+.subscription-card:hover {
+    transform: translateY(-7px);
+    border-color: #ffd43b;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 212, 59, 0.12);
+}
+
+/* Service logo */
+.subscription-card .service-logo {
+    width: 75px;
+    height: 75px;
+
+    margin: 0 auto 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 42px;
+    font-weight: 900;
+
+    border-radius: 15px;
+}
+
+/* Card title */
+.subscription-card h3 {
+    margin: 5px 0 8px;
+
+    font-size: 25px;
+    line-height: 1.2;
+
+    color: #ffffff;
+
+    font-weight: 800;
+}
+
+/* "Subscriptions" text */
+.subscription-card > p {
+    margin: 0 0 20px;
+
+    color: #aebbd0;
+
+    font-size: 14px;
+}
+
+/* Text containing plan information */
+.subscription-card .plan-details,
+.subscription-card .plans,
+.subscription-card .features {
+    color: #ffffff;
+    font-size: 15px;
+    line-height: 1.65;
+    text-align: left;
+}
+
+/* Make plan names stand out */
+.subscription-card strong {
+    color: #ffd43b;
+}
+
+/* Subscribe button */
+.subscription-card button {
+    width: 100%;
+
+    margin-top: auto;
+    padding: 14px 18px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: linear-gradient(
+        135deg,
+        #ffd43b,
+        #ffb300
+    );
+
+    color: #111111;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition: transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.subscription-card button:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 20px rgba(255, 193, 7, 0.3);
+}
+
+/* =========================================================
+   SERVICE LOGO COLORS
+   ========================================================= */
+
+.netflix-logo {
+    color: #e50914;
+}
+
+.youtube-logo {
+    color: #ff0033;
+}
+
+.spotify-logo {
+    color: #1ed760;
+}
+
+.dstv-logo {
+    color: #00b7ff;
+}
+
+.gotv-logo {
+    color: #00d4aa;
+}
+
+.prime-logo {
+    color: #00a8e1;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    #subscriptions {
+        padding: 55px 18px;
+    }
+
+    .subscription-grid,
+    .subscriptions-grid,
+    .subscription-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .subscription-card {
+        min-height: 400px;
+        padding: 24px 20px;
+    }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    #subscriptions {
+        padding: 45px 14px;
+    }
+
+    .subscription-grid,
+    .subscriptions-grid,
+    .subscription-cards {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .subscription-card {
+        min-height: auto;
+        padding: 25px 20px;
+    }
+
+    .subscription-card h3 {
+        font-size: 23px;
+    }
+
+    .subscription-card .service-logo {
+        width: 70px;
+        height: 70px;
+    }
+
+    .subscription-card .plan-details,
+    .subscription-card .plans,
+    .subscription-card .features {
+        font-size: 15px;
+    }
+}
