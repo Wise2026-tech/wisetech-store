@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width,
+        initial-scale=1.0"
+    >
+
+    <title>
+        WISETECH Admin
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            background: #070b12;
+
+            color: #ffffff;
+        }
+
+        header {
+            padding: 25px 5%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                space-between;
+
+            background: #050505;
+
+            border-bottom:
+                1px solid #222;
+        }
+
+        header h1 {
+            margin: 0;
+
+            font-size: 24px;
+        }
+
+        header span {
+            color: #ffd000;
+        }
+
+        main {
+            max-width: 1400px;
+
+            margin: auto;
+
+            padding: 35px 5%;
+        }
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    3,
+                    minmax(
+                        0,
+                        1fr
+                    )
+                );
+
+            gap: 18px;
+
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            background:
+                linear-gradient(
+                    145deg,
+                    #121a28,
+                    #080d14
+                );
+
+            border:
+                1px solid #253247;
+
+            border-radius:
+                14px;
+
+            padding: 22px;
+        }
+
+        .stat small {
+            display: block;
+
+            color: #9ba8ba;
+
+            margin-bottom:
+                8px;
+        }
+
+        .stat strong {
+            font-size: 27px;
+
+            color: #ffd000;
+        }
+
+        .toolbar {
+            display: flex;
+
+            gap: 12px;
+
+            margin-bottom:
+                20px;
+
+            flex-wrap: wrap;
+        }
+
+        input,
+        select,
+        button {
+            font: inherit;
+        }
+
+        input,
+        select {
+            padding: 11px 12px;
+
+            border-radius: 8px;
+
+            border:
+                1px solid #2b394e;
+
+            background: #0b111c;
+
+            color: #ffffff;
+        }
+
+        input {
+            flex: 1;
+
+            min-width: 220px;
+        }
+
+        button {
+            padding:
+                11px 18px;
+
+            border: 0;
+
+            border-radius: 8px;
+
+            background: #ffd000;
+
+            color: #111;
+
+            font-weight: 800;
+
+            cursor: pointer;
+        }
+
+        .table-wrap {
+            width: 100%;
+
+            overflow-x: auto;
+
+            border:
+                1px solid #263248;
+
+            border-radius: 14px;
+
+            background: #0b111c;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse:
+                collapse;
+
+            min-width: 1000px;
+        }
+
+        th,
+        td {
+            padding:
+                14px 13px;
+
+            text-align: left;
+
+            border-bottom:
+                1px solid #202c3e;
+
+            font-size: 13px;
+        }
+
+        th {
+            color: #ffd000;
+
+            background: #111824;
+
+            position: sticky;
+
+            top: 0;
+        }
+
+        td {
+            color: #dbe2ec;
+        }
+
+        .status {
+            display:
+                inline-block;
+
+            padding:
+                6px 9px;
+
+            border-radius:
+                20px;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            text-transform:
+                uppercase;
+        }
+
+        .paid {
+            background:
+                rgba(
+                    38,
+                    208,
+                    124,
+                    .15
+                );
+
+            color: #42e69a;
+        }
+
+        .pending {
+            background:
+                rgba(
+                    255,
+                    208,
+                    0,
+                    .15
+                );
+
+            color: #ffd000;
+        }
+
+        .failed {
+            background:
+                rgba(
+                    255,
+                    68,
+                    68,
+                    .15
+                );
+
+            color: #ff6969;
+        }
+
+        .empty {
+            padding: 35px;
+
+            text-align: center;
+
+            color: #8997aa;
+        }
+
+        @media (
+            max-width: 700px
+        ) {
+
+            .stats {
+                grid-template-columns:
+                    1fr;
+            }
+
+            header {
+                padding:
+                    20px;
+            }
+
+            main {
+                padding:
+                    25px 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>
+        WISE<span>TECH</span>
+        Admin
+    </h1>
+
+    <button
+        onclick="loadOrders()"
+    >
+        Refresh
+    </button>
+
+</header>
+
+
+<main>
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <small>
+                Total Orders
+            </small>
+
+            <strong
+                id="totalOrders"
+            >
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat">
+
+            <small>
+                Paid Orders
+            </small>
+
+            <strong
+                id="paidOrders"
+            >
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="stat">
+
+            <small>
+                Paid Revenue
+            </small>
+
+            <strong
+                id="revenue"
+            >
+                GH₵0.00
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <div class="toolbar">
+
+        <input
+            id="search"
+            type="text"
+            placeholder="
+            Search customer,
+            phone,
+            product..."
+            oninput="renderOrders()"
+        >
+
+
+        <select
+            id="statusFilter"
+            onchange="renderOrders()"
+        >
+
+            <option value="">
+                All statuses
+            </option>
+
+            <option value="paid">
+                Paid
+            </option>
+
+            <option value="pending">
+                Pending
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+            <tr>
+
+                <th>
+                    Order
+                </th>
+
+                <th>
+                    Customer
+                </th>
+
+                <th>
+                    Phone
+                </th>
+
+                <th>
+                    Product
+                </th>
+
+                <th>
+                    Amount
+                </th>
+
+                <th>
+                    Status
+                </th>
+
+                <th>
+                    Date
+                </th>
+
+                <th>
+                    Reference
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody
+                id="orders"
+            ></tbody>
+
+        </table>
+
+    </div>
+
+</main>
+
+
+<script>
+
+    let allOrders = [];
+
+
+    async function loadOrders() {
+
+        const tbody =
+            document.getElementById(
+                "orders"
+            );
+
+
+        tbody.innerHTML = `
+            <tr>
+                <td
+                    colspan="8"
+                    class="empty"
+                >
+                    Loading orders...
+                </td>
+            </tr>
+        `;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/admin/orders"
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+
+                throw new Error(
+                    "Unable to load orders."
+                );
+
+            }
+
+
+            allOrders =
+                result.orders;
+
+
+            updateStats();
+
+            renderOrders();
+
+
+        } catch (error) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td
+                        colspan="8"
+                        class="empty"
+                    >
+                        Unable to load orders.
+                    </td>
+                </tr>
+            `;
+
+        }
+
+    }
+
+
+    function updateStats() {
+
+        const paid =
+            allOrders.filter(
+                order =>
+                    order.payment_status ===
+                    "paid"
+            );
+
+
+        const revenue =
+            paid.reduce(
+                (
+                    total,
+                    order
+                ) =>
+                    total +
+                    Number(
+                        order.amount
+                    ),
+                0
+            );
+
+
+        document
+            .getElementById(
+                "totalOrders"
+            )
+            .textContent =
+                allOrders.length;
+
+
+        document
+            .getElementById(
+                "paidOrders"
+            )
+            .textContent =
+                paid.length;
+
+
+        document
+            .getElementById(
+                "revenue"
+            )
+            .textContent =
+                `GH₵${revenue.toFixed(2)}`;
+
+    }
+
+
+    function renderOrders() {
+
+        const tbody =
+            document.getElementById(
+                "orders"
+            );
+
+
+        const search =
+            document
+                .getElementById(
+                    "search"
+                )
+                .value
+                .toLowerCase()
+                .trim();
+
+
+        const status =
+            document
+                .getElementById(
+                    "statusFilter"
+                )
+                .value;
+
+
+        const filtered =
+            allOrders.filter(
+                order => {
+
+                    const searchable =
+                        [
+                            order.customer_name,
+                            order.phone,
+                            order.email,
+                            order.product,
+                            order.payment_reference
+                        ]
+                        .join(" ")
+                        .toLowerCase();
+
+
+                    const searchMatches =
+                        !search ||
+                        searchable.includes(
+                            search
+                        );
+
+
+                    const statusMatches =
+                        !status ||
+                        order.payment_status ===
+                            status;
+
+
+                    return (
+                        searchMatches &&
+                        statusMatches
+                    );
+
+                }
+            );
+
+
+        if (
+            filtered.length === 0
+        ) {
+
+            tbody.innerHTML = `
+                <tr>
+
+                    <td
+                        colspan="8"
+                        class="empty"
+                    >
+                        No orders found.
+                    </td>
+
+                </tr>
+            `;
+
+            return;
+
+        }
+
+
+        tbody.innerHTML =
+            filtered
+                .map(
+                    order => {
+
+                        const statusClass =
+                            order.payment_status ===
+                                "paid"
+                                ? "paid"
+                                : order.payment_status ===
+                                    "pending"
+                                    ? "pending"
+                                    : "failed";
+
+
+                        return `
+
+                            <tr>
+
+                                <td>
+                                    #${order.id}
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        ${escapeHtml(
+                                            order.customer_name
+                                        )}
+                                    </strong>
+
+                                    <br>
+
+                                    <small>
+                                        ${escapeHtml(
+                                            order.email
+                                        )}
+                                    </small>
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        order.phone
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        order.product
+                                    )}
+                                </td>
+
+                                <td>
+                                    GH₵${Number(
+                                        order.amount
+                                    ).toFixed(2)}
+                                </td>
+
+                                <td>
+
+                                    <span
+                                        class="
+                                        status
+                                        ${statusClass}
+                                        "
+                                    >
+                                        ${escapeHtml(
+                                            order.payment_status
+                                        )}
+                                    </span>
+
+                                </td>
+
+                                <td>
+                                    ${formatDate(
+                                        order.created_at
+                                    )}
+                                </td>
+
+                                <td>
+
+                                    <small>
+                                        ${escapeHtml(
+                                            order.payment_reference ||
+                                            "-"
+                                        )}
+                                    </small>
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                    }
+                )
+                .join("");
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(
+            value || ""
+        )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+
+    }
+
+
+    function formatDate(value) {
+
+        if (!value) {
+            return "-";
+        }
+
+
+        const date =
+            new Date(
+                value
+                    .replace(
+                        " ",
+                        "T"
+                    ) +
+                "Z"
+            );
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return value;
+
+        }
+
+
+        return date
+            .toLocaleString();
+
+    }
+
+
+    loadOrders();
+
+</script>
+
+</body>
+
+</html>
