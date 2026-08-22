@@ -1,98 +1,162 @@
+/* =========================================================
+   WISETECH FRONTEND
+========================================================= */
+
 let products = [];
 
 let cart = [];
 
-let paystackPublicKey = "";
 
-/* =========================
-   INITIALIZE
-========================= */
+/* =========================================================
+   START WEBSITE
+========================================================= */
 
-async function initialize() {
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-    try {
+        loadCart();
 
-        const productResponse =
-            await fetch("/api/products");
+        await loadProducts();
 
-        products =
-            await productResponse.json();
-
-        const configResponse =
-            await fetch("/api/config");
-
-        const config =
-            await configResponse.json();
-
-        paystackPublicKey =
-            config.publicKey;
-
-        displayProducts();
-
-    } catch (error) {
-
-        console.error(
-            "Initialization error:",
-            error
-        );
+        checkPaymentReturn();
 
     }
+);
 
-}
 
-initialize();
+/* =========================================================
+   LOAD PRODUCTS
+========================================================= */
 
-/* =========================
-   DISPLAY PRODUCTS
-========================= */
-
-function displayProducts() {
+async function loadProducts() {
 
     const container =
         document.getElementById(
             "dataProducts"
         );
 
-    const dataProducts =
-        products.filter(
-            product =>
-                product.category === "data"
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/products"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load products."
+            );
+
+        }
+
+
+        products =
+            await response.json();
+
+
+        displayDataProducts();
+
+        renderCart();
+
+
+    } catch (error) {
+
+        console.error(
+            "Products:",
+            error
         );
 
-    container.innerHTML =
-        dataProducts.map(product => `
 
-            <div class="product-card">
+        if (container) {
 
-                <span class="mtn-label">
-                    MTN DATA
-                </span>
+            container.innerHTML = `
+                <p style="
+                    padding:20px;
+                    color:#c00;
+                ">
+                    Unable to load data bundles.
+                    Please refresh the page.
+                </p>
+            `;
 
-                <h3>
-                    ${product.name
-                        .replace("MTN ", "")}
-                </h3>
+        }
 
-                <div class="price">
-                    GH₵${product.price.toFixed(2)}
-                </div>
-
-                <button
-                    class="buy-button"
-                    onclick="addToCart('${product.id}')"
-                >
-                    Add to Cart
-                </button>
-
-            </div>
-
-        `).join("");
+    }
 
 }
 
-/* =========================
-   ADD TO CART
-========================= */
+
+/* =========================================================
+   SHOW MTN DATA
+========================================================= */
+
+function displayDataProducts() {
+
+    const container =
+        document.getElementById(
+            "dataProducts"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const dataProducts =
+        products.filter(
+            product =>
+                product.category ===
+                "data"
+        );
+
+
+    container.innerHTML =
+        dataProducts
+            .map(
+                product => `
+
+                    <article class="product-card">
+
+                        <span class="mtn-label">
+                            MTN DATA
+                        </span>
+
+                        <h3>
+                            ${escapeHtml(
+                                product.displayName
+                            )}
+                        </h3>
+
+                        <p class="price">
+                            GH₵${Number(
+                                product.price
+                            ).toFixed(2)}
+                        </p>
+
+                        <button
+                            class="buy-button"
+                            onclick="addToCart('${product.id}')"
+                        >
+                            🛒 BUY NOW
+                        </button>
+
+                    </article>
+
+                `
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   ADD PRODUCT
+========================================================= */
 
 function addToCart(productId) {
 
@@ -102,55 +166,204 @@ function addToCart(productId) {
                 item.id === productId
         );
 
-    if (!product) return;
 
-    cart.push(product);
+    if (!product) {
 
-    updateCart();
+        alert(
+            "Product unavailable."
+        );
+
+        return;
+
+    }
+
+
+    cart.push(
+        product.id
+    );
+
+
+    saveCart();
+
+    renderCart();
 
     openCart();
 
 }
 
-/* =========================
-   UPDATE CART
-========================= */
 
-function updateCart() {
+/* =========================================================
+   REMOVE PRODUCT
+========================================================= */
 
-    document.getElementById(
-        "cartCount"
-    ).innerText = cart.length;
+function removeFromCart(index) {
 
-    const container =
+    cart.splice(
+        index,
+        1
+    );
+
+
+    saveCart();
+
+    renderCart();
+
+}
+
+
+/* =========================================================
+   CART ITEMS
+========================================================= */
+
+function getCartProducts() {
+
+    return cart
+        .map(
+            productId =>
+                products.find(
+                    product =>
+                        product.id ===
+                        productId
+                )
+        )
+        .filter(Boolean);
+
+}
+
+
+/* =========================================================
+   TOTAL
+========================================================= */
+
+function getCartTotal() {
+
+    return getCartProducts()
+        .reduce(
+            (
+                total,
+                product
+            ) =>
+                total +
+                Number(
+                    product.price
+                ),
+            0
+        );
+
+}
+
+
+/* =========================================================
+   RENDER CART
+========================================================= */
+
+function renderCart() {
+
+    const count =
+        document.getElementById(
+            "cartCount"
+        );
+
+
+    if (count) {
+
+        count.textContent =
+            cart.length;
+
+    }
+
+
+    const cartItems =
         document.getElementById(
             "cartItems"
         );
 
-    if (cart.length === 0) {
 
-        container.innerHTML = `
-            <p>
+    const cartTotal =
+        document.getElementById(
+            "cartTotal"
+        );
+
+
+    const checkoutTotal =
+        document.getElementById(
+            "checkoutTotal"
+        );
+
+
+    const total =
+        getCartTotal();
+
+
+    if (cartTotal) {
+
+        cartTotal.textContent =
+            `GH₵${total.toFixed(2)}`;
+
+    }
+
+
+    if (checkoutTotal) {
+
+        checkoutTotal.textContent =
+            `GH₵${total.toFixed(2)}`;
+
+    }
+
+
+    if (!cartItems) {
+        return;
+    }
+
+
+    const cartProducts =
+        getCartProducts();
+
+
+    if (
+        cartProducts.length === 0
+    ) {
+
+        cartItems.innerHTML = `
+            <p style="
+                padding:20px 0;
+                color:#777;
+            ">
                 Your cart is empty.
             </p>
         `;
 
-    } else {
+        return;
 
-        container.innerHTML =
-            cart.map(
-                (item, index) => `
+    }
+
+
+    cartItems.innerHTML =
+        cartProducts
+            .map(
+                (
+                    product,
+                    index
+                ) => `
 
                     <div class="cart-item">
 
                         <div>
+
                             <strong>
-                                ${item.name}
+                                ${escapeHtml(
+                                    product.name
+                                )}
                             </strong>
 
                             <br>
 
-                            GH₵${item.price.toFixed(2)}
+                            <span>
+                                GH₵${Number(
+                                    product.price
+                                ).toFixed(2)}
+                            </span>
+
                         </div>
 
                         <button
@@ -163,169 +376,233 @@ function updateCart() {
                     </div>
 
                 `
-            ).join("");
-
-    }
-
-    const total =
-        getCartTotal();
-
-    document.getElementById(
-        "cartTotal"
-    ).innerText =
-        `GH₵${total.toFixed(2)}`;
-
-    document.getElementById(
-        "checkoutTotal"
-    ).innerText =
-        `GH₵${total.toFixed(2)}`;
+            )
+            .join("");
 
 }
 
-/* =========================
-   REMOVE ITEM
-========================= */
 
-function removeFromCart(index) {
+/* =========================================================
+   SAVE CART
+========================================================= */
 
-    cart.splice(index, 1);
+function saveCart() {
 
-    updateCart();
-
-}
-
-/* =========================
-   CART TOTAL
-========================= */
-
-function getCartTotal() {
-
-    return cart.reduce(
-        (total, item) =>
-            total + Number(item.price),
-        0
+    localStorage.setItem(
+        "wisetech-cart",
+        JSON.stringify(cart)
     );
 
 }
 
-/* =========================
-   OPEN CART
-========================= */
 
-function openCart() {
+/* =========================================================
+   LOAD CART
+========================================================= */
 
-    document.getElementById(
-        "cartOverlay"
-    ).style.display = "flex";
-
-    updateCart();
-
-}
-
-/* =========================
-   CLOSE CART
-========================= */
-
-function closeCart() {
-
-    document.getElementById(
-        "cartOverlay"
-    ).style.display = "none";
-
-}
-
-/* =========================
-   CHECKOUT
-========================= */
-
-function openCheckout() {
-
-    if (cart.length === 0) {
-
-        alert(
-            "Your cart is empty."
-        );
-
-        return;
-
-    }
-
-    closeCart();
-
-    document.getElementById(
-        "checkoutOverlay"
-    ).style.display = "flex";
-
-    updateCart();
-
-}
-
-/* =========================
-   CLOSE CHECKOUT
-========================= */
-
-function closeCheckout() {
-
-    document.getElementById(
-        "checkoutOverlay"
-    ).style.display = "none";
-
-}
-
-/* =========================
-   PAY NOW
-========================= */
-
-async function payNow() {
-
-    const name =
-        document.getElementById(
-            "customerName"
-        ).value.trim();
-
-    const phone =
-        document.getElementById(
-            "customerPhone"
-        ).value.trim();
-
-    const email =
-        document.getElementById(
-            "customerEmail"
-        ).value.trim();
-
-    if (!name || !phone || !email) {
-
-        alert(
-            "Please complete all customer information."
-        );
-
-        return;
-
-    }
-
-    if (!cart.length) {
-
-        alert(
-            "Your cart is empty."
-        );
-
-        return;
-
-    }
-
-    const total =
-        getCartTotal();
-
-    const product =
-        cart.map(
-            item => item.name
-        ).join(", ");
+function loadCart() {
 
     try {
 
-        const orderResponse =
+        const saved =
+            JSON.parse(
+                localStorage.getItem(
+                    "wisetech-cart"
+                )
+            );
+
+
+        if (
+            Array.isArray(saved)
+        ) {
+
+            cart = saved;
+
+        }
+
+    } catch {
+
+        cart = [];
+
+    }
+
+}
+
+
+/* =========================================================
+   OPEN CART
+========================================================= */
+
+function openCart() {
+
+    const overlay =
+        document.getElementById(
+            "cartOverlay"
+        );
+
+
+    if (overlay) {
+
+        overlay.style.display =
+            "flex";
+
+    }
+
+}
+
+
+/* =========================================================
+   CLOSE CART
+========================================================= */
+
+function closeCart() {
+
+    const overlay =
+        document.getElementById(
+            "cartOverlay"
+        );
+
+
+    if (overlay) {
+
+        overlay.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   OPEN CHECKOUT
+========================================================= */
+
+function openCheckout() {
+
+    if (
+        getCartProducts()
+            .length === 0
+    ) {
+
+        alert(
+            "Your cart is empty."
+        );
+
+        return;
+
+    }
+
+
+    closeCart();
+
+
+    const checkout =
+        document.getElementById(
+            "checkoutOverlay"
+        );
+
+
+    if (checkout) {
+
+        checkout.style.display =
+            "flex";
+
+    }
+
+
+    renderCart();
+
+}
+
+
+/* =========================================================
+   CLOSE CHECKOUT
+========================================================= */
+
+function closeCheckout() {
+
+    const checkout =
+        document.getElementById(
+            "checkoutOverlay"
+        );
+
+
+    if (checkout) {
+
+        checkout.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =========================================================
+   PAY WITH PAYSTACK
+========================================================= */
+
+async function payNow() {
+
+    const customerName =
+        document
+            .getElementById(
+                "customerName"
+            )
+            ?.value
+            .trim();
+
+
+    const phone =
+        document
+            .getElementById(
+                "customerPhone"
+            )
+            ?.value
+            .trim();
+
+
+    const email =
+        document
+            .getElementById(
+                "customerEmail"
+            )
+            ?.value
+            .trim();
+
+
+    if (
+        !customerName ||
+        !phone ||
+        !email
+    ) {
+
+        alert(
+            "Please enter your name, phone number and email."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        cart.length === 0
+    ) {
+
+        alert(
+            "Your cart is empty."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
             await fetch(
-                "/api/orders",
+                "/api/paystack/initialize",
                 {
 
                     method: "POST",
@@ -335,223 +612,209 @@ async function payNow() {
                             "application/json"
                     },
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        customerName: name,
+                            customerName,
 
-                        phone: phone,
+                            phone,
 
-                        email: email,
+                            email,
 
-                        product: product,
+                            items:
+                                cart
 
-                        amount: total
-
-                    })
+                        })
 
                 }
             );
 
-        const order =
-            await orderResponse.json();
 
-        if (!order.success) {
+        const result =
+            await response.json();
 
-            throw new Error(
-                "Could not create order."
-            );
-
-        }
 
         if (
-            !paystackPublicKey ||
-            paystackPublicKey.includes(
-                "REPLACE"
-            )
+            !response.ok ||
+            !result.success
         ) {
 
-            alert(
-                "Paystack has not been configured yet. Add your Paystack public key to the .env file."
+            throw new Error(
+                result.error ||
+                "Payment could not start."
             );
-
-            return;
 
         }
 
-        const handler =
-            PaystackPop.setup({
 
-                key:
-                    paystackPublicKey,
+        /*
+            Send customer to Paystack's
+            secure checkout page.
+        */
 
-                email:
-                    email,
+        window.location.href =
+            result.authorizationUrl;
 
-                amount:
-                    Math.round(
-                        total * 100
-                    ),
-
-                currency:
-                    "GHS",
-
-                ref:
-                    "WISETECH-" +
-                    order.orderId +
-                    "-" +
-                    Date.now(),
-
-                metadata: {
-
-                    custom_fields: [
-
-                        {
-                            display_name:
-                                "Customer Name",
-
-                            variable_name:
-                                "customer_name",
-
-                            value:
-                                name
-                        },
-
-                        {
-                            display_name:
-                                "Phone",
-
-                            variable_name:
-                                "phone",
-
-                            value:
-                                phone
-                        },
-
-                        {
-                            display_name:
-                                "Product",
-
-                            variable_name:
-                                "product",
-
-                            value:
-                                product
-                        },
-
-                        {
-                            display_name:
-                                "Order ID",
-
-                            variable_name:
-                                "order_id",
-
-                            value:
-                                String(
-                                    order.orderId
-                                )
-                        }
-
-                    ]
-
-                },
-
-                callback:
-                    function(response) {
-
-                        alert(
-                            "Payment completed.\n\nReference: " +
-                            response.reference
-                        );
-
-                        /*
-                         IMPORTANT:
-
-                         Do not automatically deliver
-                         data merely because this callback
-                         runs.
-
-                         Your backend should verify the
-                         Paystack transaction first.
-                        */
-
-                        cart = [];
-
-                        updateCart();
-
-                        closeCheckout();
-
-                    },
-
-                onClose:
-                    function() {
-
-                        console.log(
-                            "Payment window closed."
-                        );
-
-                    }
-
-            });
-
-        handler.openIframe();
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Payment:",
+            error
+        );
+
 
         alert(
-            "Something went wrong while creating your order."
+            error.message ||
+            "Unable to start payment."
         );
 
     }
 
 }
 
-/* =========================
-   WHATSAPP
-========================= */
 
-function whatsappMessage(message) {
+/* =========================================================
+   SUBSCRIPTION PLAN SELECTION
+
+   Your existing HTML calls:
+   subscriptionOrder("Netflix Subscription")
+========================================================= */
+
+function subscriptionOrder(
+    service
+) {
+
+    const plans =
+        products.filter(
+            product =>
+                product.category ===
+                    "subscription" &&
+                product.service ===
+                    service
+        );
+
+
+    if (
+        plans.length === 0
+    ) {
+
+        alert(
+            "This subscription is currently unavailable."
+        );
+
+        return;
+
+    }
+
+
+    const menu =
+        plans
+            .map(
+                (
+                    plan,
+                    index
+                ) => {
+
+                    const details =
+                        plan.details
+                            ? ` - ${plan.details}`
+                            : "";
+
+
+                    return (
+                        `${index + 1}. ` +
+                        `${plan.displayName} - ` +
+                        `GH₵${Number(
+                            plan.price
+                        ).toFixed(2)}` +
+                        `${details}`
+                    );
+
+                }
+            )
+            .join("\n");
+
+
+    const answer =
+        prompt(
+            `Choose your plan:\n\n${menu}\n\nEnter the plan number:`
+        );
+
+
+    if (
+        answer === null
+    ) {
+
+        return;
+
+    }
+
+
+    const choice =
+        Number(answer) - 1;
+
+
+    if (
+        !Number.isInteger(choice) ||
+        choice < 0 ||
+        choice >= plans.length
+    ) {
+
+        alert(
+            "Please select a valid plan number."
+        );
+
+        return;
+
+    }
+
+
+    addToCart(
+        plans[choice].id
+    );
+
+}
+
+
+/* =========================================================
+   WHATSAPP
+========================================================= */
+
+function whatsappMessage(
+    message
+) {
 
     const number =
         "233542665822";
 
+
     const url =
-        "https://wa.me/" +
-        number +
-        "?text=" +
-        encodeURIComponent(
-            message
-        );
+        `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+
 
     window.open(
         url,
-        "_blank"
+        "_blank",
+        "noopener,noreferrer"
     );
 
 }
 
-/* =========================
-   SUBSCRIPTION ORDER
-========================= */
 
-function subscriptionOrder(product) {
-
-    whatsappMessage(
-        "Hello WISETECH, I am interested in " +
-        product +
-        ". Please send me the available options and price."
-    );
-
-}
-
-/* =========================
-   CART WHATSAPP
-========================= */
+/* =========================================================
+   CART THROUGH WHATSAPP
+========================================================= */
 
 function cartWhatsApp() {
 
-    if (!cart.length) {
+    const cartProducts =
+        getCartProducts();
+
+
+    if (
+        cartProducts.length === 0
+    ) {
 
         alert(
             "Your cart is empty."
@@ -561,31 +824,139 @@ function cartWhatsApp() {
 
     }
 
-    let message =
-        "Hello WISETECH,%0A%0AI want to order:%0A";
 
-    cart.forEach(
-        (item, index) => {
+    const lines =
+        cartProducts
+            .map(
+                product =>
+                    `${product.name} - GH₵${Number(
+                        product.price
+                    ).toFixed(2)}`
+            )
+            .join("\n");
 
-            message +=
-                (index + 1) +
-                ". " +
-                item.name +
-                " - GH₵" +
-                item.price +
-                "%0A";
 
-        }
+    const total =
+        getCartTotal();
+
+
+    const message =
+        `Hello WISETECH,\n\n` +
+        `I would like to order:\n\n` +
+        `${lines}\n\n` +
+        `Total: GH₵${total.toFixed(2)}`;
+
+
+    whatsappMessage(
+        message
     );
 
-    message +=
-        "%0ATotal: GH₵" +
-        getCartTotal().toFixed(2);
+}
 
-    window.open(
-        "https://wa.me/233542665822?text=" +
-        message,
-        "_blank"
+
+/* =========================================================
+   PAYMENT RETURN MESSAGE
+========================================================= */
+
+function checkPaymentReturn() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const payment =
+        params.get(
+            "payment"
+        );
+
+
+    if (!payment) {
+        return;
+    }
+
+
+    if (
+        payment === "success"
+    ) {
+
+        cart = [];
+
+        saveCart();
+
+        renderCart();
+
+
+        alert(
+            "Payment successful! Your WISETECH order has been received."
+        );
+
+    }
+
+
+    if (
+        payment === "failed"
+    ) {
+
+        alert(
+            "Payment was not completed."
+        );
+
+    }
+
+
+    if (
+        payment === "error"
+    ) {
+
+        alert(
+            "We could not verify your payment. Please contact WISETECH support if you were charged."
+        );
+
+    }
+
+
+    /*
+        Remove ?payment=... from URL
+        without reloading.
+    */
+
+    window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
     );
+
+}
+
+
+/* =========================================================
+   SECURITY HELPER
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 
 }
