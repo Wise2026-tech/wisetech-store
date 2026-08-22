@@ -654,7 +654,168 @@ app.use(
         )
     )
 );
+/* =========================================================
+   ADMIN AUTHENTICATION
+========================================================= */
 
+function adminAuth(req, res, next) {
+
+    const auth =
+        req.headers.authorization;
+
+
+    if (!auth || !auth.startsWith("Basic ")) {
+
+        res.setHeader(
+            "WWW-Authenticate",
+            'Basic realm="WISETECH Admin"'
+        );
+
+        return res
+            .status(401)
+            .send(
+                "WISETECH Admin Login Required"
+            );
+
+    }
+
+
+    const encoded =
+        auth.split(" ")[1];
+
+
+    const decoded =
+        Buffer
+            .from(
+                encoded,
+                "base64"
+            )
+            .toString();
+
+
+    const separator =
+        decoded.indexOf(":");
+
+
+    const username =
+        decoded.slice(
+            0,
+            separator
+        );
+
+
+    const password =
+        decoded.slice(
+            separator + 1
+        );
+
+
+    if (
+        username !==
+            process.env.ADMIN_USERNAME ||
+        password !==
+            process.env.ADMIN_PASSWORD
+    ) {
+
+        res.setHeader(
+            "WWW-Authenticate",
+            'Basic realm="WISETECH Admin"'
+        );
+
+        return res
+            .status(401)
+            .send(
+                "Invalid admin login."
+            );
+
+    }
+
+
+    next();
+
+}
+
+
+/* =========================================================
+   ADMIN DASHBOARD
+========================================================= */
+
+app.get(
+    "/admin",
+
+    adminAuth,
+
+    (req, res) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "admin.html"
+            )
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN ORDERS API
+========================================================= */
+
+app.get(
+    "/api/admin/orders",
+
+    adminAuth,
+
+    (req, res) => {
+
+        try {
+
+            const orders =
+                db.prepare(`
+                    SELECT
+                        id,
+                        customer_name,
+                        phone,
+                        email,
+                        product,
+                        amount,
+                        payment_reference,
+                        payment_status,
+                        created_at
+
+                    FROM orders
+
+                    ORDER BY id DESC
+                `).all();
+
+
+            res.json({
+                success: true,
+                orders
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Admin orders:",
+                error
+            );
+
+
+            res
+                .status(500)
+                .json({
+                    success: false,
+                    error:
+                        "Unable to load orders."
+                });
+
+        }
+
+    }
+);
 
 /* =========================================================
    PRODUCTS API
