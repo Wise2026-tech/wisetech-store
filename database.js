@@ -1,64 +1,72 @@
 const Database = require("better-sqlite3");
+const path = require("path");
 
-const db = new Database("wisetech.db");
+const databasePath = path.join(__dirname, "wisetech.db");
+
+const db = new Database(databasePath);
 
 db.pragma("journal_mode = WAL");
 
-db.exec(`
+/* =========================================================
+   ORDERS TABLE
+========================================================= */
+
+db.prepare(`
     CREATE TABLE IF NOT EXISTS orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+
         customer_name TEXT NOT NULL,
         phone TEXT NOT NULL,
-        email TEXT,
+        email TEXT NOT NULL,
+
         product TEXT NOT NULL,
         amount REAL NOT NULL,
-        payment_reference TEXT,
+
+        payment_reference TEXT UNIQUE,
         payment_status TEXT DEFAULT 'pending',
+
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-`);
+`).run();
 
-function createOrder(order) {
+
+/* =========================================================
+   CREATE ORDER
+========================================================= */
+
+function createOrder({
+    customerName,
+    phone,
+    email,
+    product,
+    amount
+}) {
+
     const statement = db.prepare(`
-        INSERT INTO orders
-        (customer_name, phone, email, product, amount)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO orders (
+            customer_name,
+            phone,
+            email,
+            product,
+            amount,
+            payment_status
+        )
+
+        VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     return statement.run(
-        order.customerName,
-        order.phone,
-        order.email,
-        order.product,
-        order.amount
+        customerName,
+        phone,
+        email,
+        product,
+        amount,
+        "pending"
     );
 }
 
-function updatePayment(reference, status) {
-    const statement = db.prepare(`
-        UPDATE orders
-        SET payment_reference = ?,
-            payment_status = ?
-        WHERE id = ?
-    `);
-
-    return statement.run(
-        reference,
-        status,
-        reference.orderId
-    );
-}
-
-function getOrders() {
-    return db.prepare(`
-        SELECT *
-        FROM orders
-        ORDER BY created_at DESC
-    `).all();
-}
 
 module.exports = {
     db,
-    createOrder,
-    getOrders
+    createOrder
 };
