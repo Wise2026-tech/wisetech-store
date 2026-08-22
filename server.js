@@ -5,27 +5,37 @@ const path = require("path");
 const crypto = require("crypto");
 
 const {
-    db,
-    createOrder
+
+    initDatabase,
+
+    createOrder,
+
+    setPaymentReference,
+
+    findOrderByReference,
+
+    markOrderPaid,
+
+    getAllOrders,
+
+    getOrderStatus
+
 } = require("./database");
+
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+    process.env.PORT || 3000;
 
 
 /* =========================================================
    WISETECH PRODUCT CATALOG
-
-   IMPORTANT:
-   Prices are controlled on the SERVER.
 ========================================================= */
 
 const products = [
 
-    /* =========================
-       MTN DATA
-    ========================= */
+    /* ================= MTN DATA ================= */
 
     {
         id: "mtn-1gb",
@@ -136,9 +146,7 @@ const products = [
     },
 
 
-    /* =========================
-       NETFLIX
-    ========================= */
+    /* ================= NETFLIX ================= */
 
     {
         id: "netflix-mobile",
@@ -181,36 +189,44 @@ const products = [
     },
 
 
-    /* =========================
-       YOUTUBE PREMIUM
-    ========================= */
+    /* ================= YOUTUBE ================= */
 
     {
         id: "youtube-student",
         category: "subscription",
-        service: "YouTube Premium Subscription",
-        name: "YouTube Premium Student",
+        service:
+            "YouTube Premium Subscription",
+        name:
+            "YouTube Premium Student",
         displayName: "Student",
         details: "Premium access",
         price: 120
     },
 
     {
-        id: "youtube-individual-monthly",
+        id:
+            "youtube-individual-monthly",
         category: "subscription",
-        service: "YouTube Premium Subscription",
-        name: "YouTube Premium Individual Monthly",
-        displayName: "Individual Monthly",
+        service:
+            "YouTube Premium Subscription",
+        name:
+            "YouTube Premium Individual Monthly",
+        displayName:
+            "Individual Monthly",
         details: "1 user",
         price: 200
     },
 
     {
-        id: "youtube-individual-annual",
+        id:
+            "youtube-individual-annual",
         category: "subscription",
-        service: "YouTube Premium Subscription",
-        name: "YouTube Premium Individual Annual",
-        displayName: "Individual Annual",
+        service:
+            "YouTube Premium Subscription",
+        name:
+            "YouTube Premium Individual Annual",
+        displayName:
+            "Individual Annual",
         details: "12 months",
         price: 1800
     },
@@ -218,32 +234,35 @@ const products = [
     {
         id: "youtube-family",
         category: "subscription",
-        service: "YouTube Premium Subscription",
-        name: "YouTube Premium Family",
+        service:
+            "YouTube Premium Subscription",
+        name:
+            "YouTube Premium Family",
         displayName: "Family",
         details: "Family access",
         price: 335
     },
 
 
-    /* =========================
-       SPOTIFY
-    ========================= */
+    /* ================= SPOTIFY ================= */
 
     {
         id: "spotify-student",
         category: "subscription",
-        service: "Spotify Premium Subscription",
+        service:
+            "Spotify Premium Subscription",
         name: "Spotify Student",
         displayName: "Student",
-        details: "1 verified student account",
+        details:
+            "1 verified student account",
         price: 18
     },
 
     {
         id: "spotify-individual",
         category: "subscription",
-        service: "Spotify Premium Subscription",
+        service:
+            "Spotify Premium Subscription",
         name: "Spotify Individual",
         displayName: "Individual",
         details: "1 account",
@@ -253,7 +272,8 @@ const products = [
     {
         id: "spotify-duo",
         category: "subscription",
-        service: "Spotify Premium Subscription",
+        service:
+            "Spotify Premium Subscription",
         name: "Spotify Duo",
         displayName: "Duo",
         details: "2 accounts",
@@ -263,7 +283,8 @@ const products = [
     {
         id: "spotify-family",
         category: "subscription",
-        service: "Spotify Premium Subscription",
+        service:
+            "Spotify Premium Subscription",
         name: "Spotify Family",
         displayName: "Family",
         details: "Up to 6 members",
@@ -271,9 +292,7 @@ const products = [
     },
 
 
-    /* =========================
-       DSTV
-    ========================= */
+    /* ================= DSTV ================= */
 
     {
         id: "dstv-padi",
@@ -336,9 +355,7 @@ const products = [
     },
 
 
-    /* =========================
-       GOTV
-    ========================= */
+    /* ================= GOTV ================= */
 
     {
         id: "gotv-smallie",
@@ -391,46 +408,56 @@ const products = [
     },
 
 
-    /* =========================
-       PRIME VIDEO
-    ========================= */
+    /* ================= PRIME VIDEO ================= */
 
     {
         id: "prime-ghana",
         category: "subscription",
-        service: "Prime Video Subscription",
-        name: "Prime Video Ghana Direct",
+        service:
+            "Prime Video Subscription",
+        name:
+            "Prime Video Ghana Direct",
         displayName: "Ghana Direct",
-        details: "3 streams • Offline downloads",
+        details:
+            "3 streams • Offline downloads",
         price: 75
     },
 
     {
         id: "prime-us-video",
         category: "subscription",
-        service: "Prime Video Subscription",
+        service:
+            "Prime Video Subscription",
         name: "US Prime Video",
         displayName: "US Prime Video",
-        details: "Prime Video access",
+        details:
+            "Prime Video access",
         price: 110
     },
 
     {
         id: "prime-full",
         category: "subscription",
-        service: "Prime Video Subscription",
-        name: "US Full Amazon Prime",
-        displayName: "Full Amazon Prime",
-        details: "Video + Prime benefits",
+        service:
+            "Prime Video Subscription",
+        name:
+            "US Full Amazon Prime",
+        displayName:
+            "Full Amazon Prime",
+        details:
+            "Video + Prime benefits",
         price: 185
     },
 
     {
         id: "prime-student",
         category: "subscription",
-        service: "Prime Video Subscription",
-        name: "US Prime Student",
-        displayName: "Prime Student",
+        service:
+            "Prime Video Subscription",
+        name:
+            "US Prime Student",
+        displayName:
+            "Prime Student",
         details: "Prime perks",
         price: 90
     }
@@ -439,50 +466,74 @@ const products = [
 
 
 /* =========================================================
-   HELPERS
+   PRODUCT LOOKUP
 ========================================================= */
 
-function getProduct(productId) {
+function getProduct(
+    productId
+) {
 
     return products.find(
-        product => product.id === productId
+        product =>
+            product.id ===
+            productId
     );
-
-}
-
-
-function getBaseUrl(req) {
-
-    if (process.env.BASE_URL) {
-        return process.env.BASE_URL;
-    }
-
-    return `${req.protocol}://${req.get("host")}`;
 
 }
 
 
 /* =========================================================
-   VERIFY PAYMENT
+   WEBSITE URL
 ========================================================= */
 
-async function verifyPayment(reference) {
+function getBaseUrl(req) {
 
-    const response = await fetch(
-        `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-            }
-        }
+    if (process.env.BASE_URL) {
+
+        return process.env.BASE_URL;
+
+    }
+
+    return (
+        `${req.protocol}://` +
+        `${req.get("host")}`
     );
 
+}
 
-    const result = await response.json();
+
+/* =========================================================
+   VERIFY PAYSTACK PAYMENT
+========================================================= */
+
+async function verifyPayment(
+    reference
+) {
+
+    const response =
+        await fetch(
+            `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+            {
+
+                headers: {
+
+                    Authorization:
+                        `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+
+                }
+
+            }
+        );
 
 
-    if (!response.ok || !result.status) {
+    const result =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        !result.status
+    ) {
 
         throw new Error(
             result.message ||
@@ -492,14 +543,14 @@ async function verifyPayment(reference) {
     }
 
 
-    const transaction = result.data;
+    const transaction =
+        result.data;
 
 
-    const order = db.prepare(`
-        SELECT *
-        FROM orders
-        WHERE payment_reference = ?
-    `).get(reference);
+    const order =
+        await findOrderByReference(
+            reference
+        );
 
 
     if (!order) {
@@ -511,17 +562,35 @@ async function verifyPayment(reference) {
     }
 
 
+    /*
+        Postgres NUMERIC values may
+        arrive as strings.
+
+        Convert before calculating.
+    */
+
     const expectedAmount =
         Math.round(
-            Number(order.amount) * 100
+            Number(
+                order.amount
+            ) * 100
         );
 
 
-    if (
-        transaction.status !== "success" ||
-        Number(transaction.amount) !== expectedAmount ||
-        transaction.currency !== "GHS"
-    ) {
+    const valid =
+        transaction.status ===
+            "success" &&
+
+        Number(
+            transaction.amount
+        ) ===
+            expectedAmount &&
+
+        transaction.currency ===
+            "GHS";
+
+
+    if (!valid) {
 
         return {
             success: false
@@ -531,21 +600,23 @@ async function verifyPayment(reference) {
 
 
     if (
-        order.payment_status !== "paid"
+        order.payment_status !==
+        "paid"
     ) {
 
-        db.prepare(`
-            UPDATE orders
-            SET payment_status = 'paid'
-            WHERE id = ?
-        `).run(order.id);
+        await markOrderPaid(
+            order.id
+        );
 
     }
 
 
     return {
+
         success: true,
+
         order
+
     };
 
 }
@@ -554,47 +625,71 @@ async function verifyPayment(reference) {
 /* =========================================================
    PAYSTACK WEBHOOK
 
-   MUST COME BEFORE express.json()
+   IMPORTANT:
+   This must appear before express.json()
 ========================================================= */
 
 app.post(
     "/api/paystack/webhook",
 
     express.raw({
-        type: "application/json"
+        type:
+            "application/json"
     }),
 
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const signature =
-                req.headers["x-paystack-signature"];
+                req.headers[
+                    "x-paystack-signature"
+                ];
+
+
+            if (!signature) {
+
+                return res
+                    .sendStatus(401);
+
+            }
 
 
             const hash =
                 crypto
                     .createHmac(
                         "sha512",
-                        process.env.PAYSTACK_SECRET_KEY
+                        process.env
+                            .PAYSTACK_SECRET_KEY
                     )
-                    .update(req.body)
-                    .digest("hex");
+                    .update(
+                        req.body
+                    )
+                    .digest(
+                        "hex"
+                    );
 
 
             if (
-                !signature ||
-                hash !== signature
+                hash !==
+                signature
             ) {
 
-                return res.sendStatus(401);
+                return res
+                    .sendStatus(401);
 
             }
 
 
             const event =
                 JSON.parse(
-                    req.body.toString("utf8")
+                    req.body
+                        .toString(
+                            "utf8"
+                        )
                 );
 
 
@@ -606,7 +701,8 @@ app.post(
                 try {
 
                     await verifyPayment(
-                        event.data.reference
+                        event.data
+                            .reference
                     );
 
                 } catch (error) {
@@ -621,17 +717,20 @@ app.post(
             }
 
 
-            res.sendStatus(200);
+            return res
+                .sendStatus(200);
 
 
         } catch (error) {
 
             console.error(
-                "Webhook:",
+                "Webhook error:",
                 error
             );
 
-            res.sendStatus(500);
+
+            return res
+                .sendStatus(500);
 
         }
 
@@ -640,10 +739,12 @@ app.post(
 
 
 /* =========================================================
-   NORMAL MIDDLEWARE
+   NORMAL EXPRESS
 ========================================================= */
 
-app.use(express.json());
+app.use(
+    express.json()
+);
 
 
 app.use(
@@ -654,201 +755,52 @@ app.use(
         )
     )
 );
-/* =========================================================
-   ADMIN AUTHENTICATION
-========================================================= */
-
-function adminAuth(req, res, next) {
-
-    const auth =
-        req.headers.authorization;
-
-
-    if (!auth || !auth.startsWith("Basic ")) {
-
-        res.setHeader(
-            "WWW-Authenticate",
-            'Basic realm="WISETECH Admin"'
-        );
-
-        return res
-            .status(401)
-            .send(
-                "WISETECH Admin Login Required"
-            );
-
-    }
-
-
-    const encoded =
-        auth.split(" ")[1];
-
-
-    const decoded =
-        Buffer
-            .from(
-                encoded,
-                "base64"
-            )
-            .toString();
-
-
-    const separator =
-        decoded.indexOf(":");
-
-
-    const username =
-        decoded.slice(
-            0,
-            separator
-        );
-
-
-    const password =
-        decoded.slice(
-            separator + 1
-        );
-
-
-    if (
-        username !==
-            process.env.ADMIN_USERNAME ||
-        password !==
-            process.env.ADMIN_PASSWORD
-    ) {
-
-        res.setHeader(
-            "WWW-Authenticate",
-            'Basic realm="WISETECH Admin"'
-        );
-
-        return res
-            .status(401)
-            .send(
-                "Invalid admin login."
-            );
-
-    }
-
-
-    next();
-
-}
 
 
 /* =========================================================
-   ADMIN DASHBOARD
-========================================================= */
-
-app.get(
-    "/admin",
-
-    adminAuth,
-
-    (req, res) => {
-
-        res.sendFile(
-            path.join(
-                __dirname,
-                "admin.html"
-            )
-        );
-
-    }
-);
-
-
-/* =========================================================
-   ADMIN ORDERS API
-========================================================= */
-
-app.get(
-    "/api/admin/orders",
-
-    adminAuth,
-
-    (req, res) => {
-
-        try {
-
-            const orders =
-                db.prepare(`
-                    SELECT
-                        id,
-                        customer_name,
-                        phone,
-                        email,
-                        product,
-                        amount,
-                        payment_reference,
-                        payment_status,
-                        created_at
-
-                    FROM orders
-
-                    ORDER BY id DESC
-                `).all();
-
-
-            res.json({
-                success: true,
-                orders
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "Admin orders:",
-                error
-            );
-
-
-            res
-                .status(500)
-                .json({
-                    success: false,
-                    error:
-                        "Unable to load orders."
-                });
-
-        }
-
-    }
-);
-
-/* =========================================================
-   PRODUCTS API
-
-   APP.JS RECEIVES ALL PRODUCTS.
+   PRODUCTS
 ========================================================= */
 
 app.get(
     "/api/products",
-    (req, res) => {
 
-        res.json(products);
+    (
+        req,
+        res
+    ) => {
+
+        res.json(
+            products
+        );
 
     }
 );
 
 
 /* =========================================================
-   INITIALIZE PAYMENT
+   START PAYSTACK PAYMENT
 ========================================================= */
 
 app.post(
     "/api/paystack/initialize",
 
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
             const {
+
                 customerName,
+
                 phone,
+
                 email,
+
                 items
+
             } = req.body;
 
 
@@ -858,38 +810,56 @@ app.post(
                 !email
             ) {
 
-                return res.status(400).json({
-                    success: false,
-                    error:
-                        "Please enter your name, phone number and email."
-                });
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Please enter your name, phone number and email."
+
+                    });
 
             }
 
 
             if (
-                !Array.isArray(items) ||
+                !Array.isArray(
+                    items
+                ) ||
                 items.length === 0
             ) {
 
-                return res.status(400).json({
-                    success: false,
-                    error:
-                        "Your cart is empty."
-                });
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Your cart is empty."
+
+                    });
 
             }
 
 
-            const selectedProducts = [];
+            const selectedProducts =
+                [];
 
 
             for (
-                const productId of items
+                const productId
+                of items
             ) {
 
                 const product =
-                    getProduct(productId);
+                    getProduct(
+                        productId
+                    );
 
 
                 if (!product) {
@@ -897,31 +867,46 @@ app.post(
                     return res
                         .status(400)
                         .json({
-                            success: false,
+
+                            success:
+                                false,
+
                             error:
-                                "One of the selected products is invalid."
+                                "Invalid product selected."
+
                         });
 
                 }
 
 
-                selectedProducts.push(
-                    product
-                );
+                selectedProducts
+                    .push(
+                        product
+                    );
 
             }
 
 
+            /*
+                Price calculated
+                ONLY by server.
+            */
+
             const total =
-                selectedProducts.reduce(
-                    (
-                        sum,
-                        product
-                    ) =>
-                        sum +
-                        Number(product.price),
-                    0
-                );
+                selectedProducts
+                    .reduce(
+                        (
+                            sum,
+                            product
+                        ) =>
+                            sum +
+                            Number(
+                                product
+                                    .price
+                            ),
+
+                        0
+                    );
 
 
             const productNames =
@@ -930,11 +915,18 @@ app.post(
                         product =>
                             product.name
                     )
-                    .join(", ");
+                    .join(
+                        ", "
+                    );
 
 
-            const orderResult =
-                createOrder({
+            /*
+                Save pending order
+                in PostgreSQL.
+            */
+
+            const order =
+                await createOrder({
 
                     customerName,
 
@@ -953,7 +945,7 @@ app.post(
 
             const orderId =
                 Number(
-                    orderResult.lastInsertRowid
+                    order.id
                 );
 
 
@@ -961,19 +953,15 @@ app.post(
                 `WISETECH-${orderId}-${Date.now()}`;
 
 
-            db.prepare(`
-                UPDATE orders
-
-                SET
-                    payment_reference = ?,
-                    payment_status = 'pending'
-
-                WHERE id = ?
-            `).run(
-                reference,
-                orderId
+            await setPaymentReference(
+                orderId,
+                reference
             );
 
+
+            /*
+                Ghana cedis → pesewas.
+            */
 
             const amount =
                 Math.round(
@@ -987,9 +975,13 @@ app.post(
 
             const response =
                 await fetch(
+
                     "https://api.paystack.co/transaction/initialize",
+
                     {
-                        method: "POST",
+
+                        method:
+                            "POST",
 
                         headers: {
 
@@ -1001,13 +993,15 @@ app.post(
 
                         },
 
+
                         body:
                             JSON.stringify({
 
                                 email,
 
                                 amount:
-                                    amount.toString(),
+                                    amount
+                                        .toString(),
 
                                 currency:
                                     "GHS",
@@ -1021,20 +1015,29 @@ app.post(
 
                                     orderId,
 
+                                    customerName,
+
                                     phone,
 
-                                    customerName
+                                    products:
+                                        selectedProducts
+                                            .map(
+                                                product =>
+                                                    product.id
+                                            )
 
                                 }
 
                             })
 
                     }
+
                 );
 
 
             const paystack =
-                await response.json();
+                await response
+                    .json();
 
 
             if (
@@ -1043,6 +1046,7 @@ app.post(
             ) {
 
                 console.error(
+                    "Paystack:",
                     paystack
                 );
 
@@ -1050,10 +1054,14 @@ app.post(
                 return res
                     .status(500)
                     .json({
-                        success: false,
+
+                        success:
+                            false,
+
                         error:
                             paystack.message ||
-                            "Unable to start Paystack payment."
+                            "Unable to start payment."
+
                     });
 
             }
@@ -1061,12 +1069,16 @@ app.post(
 
             return res.json({
 
-                success: true,
+                success:
+                    true,
+
+                orderId,
 
                 reference,
 
                 authorizationUrl:
-                    paystack.data.authorization_url
+                    paystack.data
+                        .authorization_url
 
             });
 
@@ -1074,7 +1086,7 @@ app.post(
         } catch (error) {
 
             console.error(
-                "Initialize:",
+                "Initialize payment:",
                 error
             );
 
@@ -1082,9 +1094,13 @@ app.post(
             return res
                 .status(500)
                 .json({
-                    success: false,
+
+                    success:
+                        false,
+
                     error:
-                        "Payment could not be initialized."
+                        "Unable to initialize payment."
+
                 });
 
         }
@@ -1100,10 +1116,14 @@ app.post(
 app.get(
     "/api/paystack/callback",
 
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         const reference =
-            req.query.reference;
+            req.query
+                .reference;
 
 
         if (!reference) {
@@ -1123,7 +1143,9 @@ app.get(
                 );
 
 
-            if (result.success) {
+            if (
+                result.success
+            ) {
 
                 return res.redirect(
                     `/?payment=success&reference=${encodeURIComponent(reference)}`
@@ -1133,7 +1155,7 @@ app.get(
 
 
             return res.redirect(
-                `/?payment=failed`
+                "/?payment=failed"
             );
 
 
@@ -1156,59 +1178,340 @@ app.get(
 
 
 /* =========================================================
-   ORDER STATUS
+   CUSTOMER ORDER STATUS
 ========================================================= */
 
 app.get(
     "/api/orders/:reference/status",
 
-    (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
-        const order =
-            db.prepare(`
-                SELECT
-                    id,
-                    product,
-                    amount,
-                    payment_status,
-                    payment_reference,
-                    created_at
+        try {
 
-                FROM orders
+            const order =
+                await getOrderStatus(
+                    req.params
+                        .reference
+                );
 
-                WHERE payment_reference = ?
-            `).get(
-                req.params.reference
+
+            if (!order) {
+
+                return res
+                    .status(404)
+                    .json({
+                        success:
+                            false
+                    });
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                order
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Order status:",
+                error
             );
 
 
-        if (!order) {
-
             return res
-                .status(404)
+                .status(500)
                 .json({
-                    success: false
+                    success:
+                        false
                 });
 
         }
-
-
-        res.json({
-            success: true,
-            order
-        });
 
     }
 );
 
 
 /* =========================================================
-   WEBSITE
+   ADMIN LOGIN
+========================================================= */
+
+function safeCompare(
+    supplied,
+    expected
+) {
+
+    if (
+        typeof supplied !==
+            "string" ||
+        typeof expected !==
+            "string"
+    ) {
+
+        return false;
+
+    }
+
+
+    const first =
+        Buffer.from(
+            supplied
+        );
+
+
+    const second =
+        Buffer.from(
+            expected
+        );
+
+
+    if (
+        first.length !==
+        second.length
+    ) {
+
+        return false;
+
+    }
+
+
+    return crypto
+        .timingSafeEqual(
+            first,
+            second
+        );
+
+}
+
+
+function adminAuth(
+    req,
+    res,
+    next
+) {
+
+    const auth =
+        req.headers
+            .authorization;
+
+
+    if (
+        !auth ||
+        !auth.startsWith(
+            "Basic "
+        )
+    ) {
+
+        res.setHeader(
+            "WWW-Authenticate",
+            'Basic realm="WISETECH Admin"'
+        );
+
+
+        return res
+            .status(401)
+            .send(
+                "WISETECH Admin Login Required"
+            );
+
+    }
+
+
+    try {
+
+        const decoded =
+            Buffer
+                .from(
+                    auth
+                        .slice(6),
+                    "base64"
+                )
+                .toString(
+                    "utf8"
+                );
+
+
+        const separator =
+            decoded.indexOf(
+                ":"
+            );
+
+
+        if (
+            separator === -1
+        ) {
+
+            throw new Error(
+                "Invalid login."
+            );
+
+        }
+
+
+        const username =
+            decoded.slice(
+                0,
+                separator
+            );
+
+
+        const password =
+            decoded.slice(
+                separator + 1
+            );
+
+
+        const validUsername =
+            safeCompare(
+                username,
+                process.env
+                    .ADMIN_USERNAME
+            );
+
+
+        const validPassword =
+            safeCompare(
+                password,
+                process.env
+                    .ADMIN_PASSWORD
+            );
+
+
+        if (
+            !validUsername ||
+            !validPassword
+        ) {
+
+            throw new Error(
+                "Invalid login."
+            );
+
+        }
+
+
+        next();
+
+
+    } catch {
+
+        res.setHeader(
+            "WWW-Authenticate",
+            'Basic realm="WISETECH Admin"'
+        );
+
+
+        return res
+            .status(401)
+            .send(
+                "Invalid admin login."
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMIN PAGE
+========================================================= */
+
+app.get(
+    "/admin",
+
+    adminAuth,
+
+    (
+        req,
+        res
+    ) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "admin.html"
+            )
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN ORDERS
+========================================================= */
+
+app.get(
+    "/api/admin/orders",
+
+    adminAuth,
+
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const orders =
+                await getAllOrders();
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                orders
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Admin orders:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Unable to load orders."
+
+                });
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   WEBSITE FALLBACK
 ========================================================= */
 
 app.get(
     "*",
-    (req, res) => {
+
+    (
+        req,
+        res
+    ) => {
 
         res.sendFile(
             path.join(
@@ -1223,16 +1526,65 @@ app.get(
 
 
 /* =========================================================
-   START SERVER
+   START SERVER ONLY AFTER DATABASE IS READY
 ========================================================= */
 
-app.listen(
-    PORT,
-    () => {
+async function startServer() {
 
-        console.log(
-            `WISETECH running on port ${PORT}`
+    try {
+
+        if (
+            !process.env
+                .DATABASE_URL
+        ) {
+
+            throw new Error(
+                "DATABASE_URL is missing."
+            );
+
+        }
+
+
+        if (
+            !process.env
+                .PAYSTACK_SECRET_KEY
+        ) {
+
+            throw new Error(
+                "PAYSTACK_SECRET_KEY is missing."
+            );
+
+        }
+
+
+        await initDatabase();
+
+
+        app.listen(
+            PORT,
+            () => {
+
+                console.log(
+                    `WISETECH running on port ${PORT}`
+                );
+
+            }
         );
 
+
+    } catch (error) {
+
+        console.error(
+            "WISETECH startup failed:",
+            error
+        );
+
+
+        process.exit(1);
+
     }
-);
+
+}
+
+
+startServer();
