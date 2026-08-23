@@ -229,7 +229,46 @@ async function getOrderStatus(
     return result.rows[0] || null;
 }
 
+/* =========================================================
+   UPDATE FULFILLMENT STATUS
+========================================================= */
 
+async function updateFulfillmentStatus(
+    orderId,
+    status
+) {
+
+    const allowedStatuses = [
+        "pending",
+        "processing",
+        "completed",
+        "cancelled"
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+        throw new Error(
+            "Invalid fulfillment status."
+        );
+    }
+
+    const result = await pool.query(
+        `
+        UPDATE orders
+
+        SET fulfillment_status = $1
+
+        WHERE id = $2
+
+        RETURNING *
+        `,
+        [
+            status,
+            orderId
+        ]
+    );
+
+    return result.rows[0] || null;
+}
 /* =========================================================
    EXPORTS
 ========================================================= */
