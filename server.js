@@ -1,8 +1,11 @@
 require("dotenv").config();
 
 const express = require("express");
+
 const path = require("path");
+
 const crypto = require("crypto");
+
 
 const {
 
@@ -14,28 +17,35 @@ const {
 
     findOrderByReference,
 
+    findOrderById,
+
     markOrderPaid,
 
     getAllOrders,
 
-    getOrderStatus
+    getOrderStatus,
+
+    updateFulfillmentStatus
 
 } = require("./database");
 
 
 const app = express();
 
+
 const PORT =
     process.env.PORT || 3000;
 
 
 /* =========================================================
-   WISETECH PRODUCT CATALOG
+   WISETECH PRODUCTS
 ========================================================= */
 
 const products = [
 
-    /* ================= MTN DATA ================= */
+    /* =========================
+       MTN DATA
+    ========================= */
 
     {
         id: "mtn-1gb",
@@ -146,7 +156,9 @@ const products = [
     },
 
 
-    /* ================= NETFLIX ================= */
+    /* =========================
+       NETFLIX
+    ========================= */
 
     {
         id: "netflix-mobile",
@@ -154,7 +166,7 @@ const products = [
         service: "Netflix Subscription",
         name: "Netflix Mobile",
         displayName: "Mobile",
-        details: "480p (SD) • 1 device",
+        details: "480p SD • 1 device",
         price: 40
     },
 
@@ -164,7 +176,7 @@ const products = [
         service: "Netflix Subscription",
         name: "Netflix Basic",
         displayName: "Basic",
-        details: "720p (HD) • 1 device",
+        details: "720p HD • 1 device",
         price: 55
     },
 
@@ -174,7 +186,8 @@ const products = [
         service: "Netflix Subscription",
         name: "Netflix Standard",
         displayName: "Standard",
-        details: "1080p Full HD • 2 devices",
+        details:
+            "1080p Full HD • 2 devices",
         price: 110
     },
 
@@ -189,7 +202,9 @@ const products = [
     },
 
 
-    /* ================= YOUTUBE ================= */
+    /* =========================
+       YOUTUBE PREMIUM
+    ========================= */
 
     {
         id: "youtube-student",
@@ -244,7 +259,9 @@ const products = [
     },
 
 
-    /* ================= SPOTIFY ================= */
+    /* =========================
+       SPOTIFY
+    ========================= */
 
     {
         id: "spotify-student",
@@ -292,7 +309,9 @@ const products = [
     },
 
 
-    /* ================= DSTV ================= */
+    /* =========================
+       DSTV
+    ========================= */
 
     {
         id: "dstv-padi",
@@ -355,7 +374,9 @@ const products = [
     },
 
 
-    /* ================= GOTV ================= */
+    /* =========================
+       GOTV
+    ========================= */
 
     {
         id: "gotv-smallie",
@@ -408,7 +429,9 @@ const products = [
     },
 
 
-    /* ================= PRIME VIDEO ================= */
+    /* =========================
+       PRIME VIDEO
+    ========================= */
 
     {
         id: "prime-ghana",
@@ -430,8 +453,7 @@ const products = [
             "Prime Video Subscription",
         name: "US Prime Video",
         displayName: "US Prime Video",
-        details:
-            "Prime Video access",
+        details: "Prime Video access",
         price: 110
     },
 
@@ -454,10 +476,8 @@ const products = [
         category: "subscription",
         service:
             "Prime Video Subscription",
-        name:
-            "US Prime Student",
-        displayName:
-            "Prime Student",
+        name: "US Prime Student",
+        displayName: "Prime Student",
         details: "Prime perks",
         price: 90
     }
@@ -475,24 +495,28 @@ function getProduct(
 
     return products.find(
         product =>
-            product.id ===
-            productId
+            product.id === productId
     );
 
 }
 
 
 /* =========================================================
-   WEBSITE URL
+   WEBSITE BASE URL
 ========================================================= */
 
 function getBaseUrl(req) {
 
-    if (process.env.BASE_URL) {
+    if (
+        process.env.BASE_URL
+    ) {
 
-        return process.env.BASE_URL;
+        return process.env
+            .BASE_URL
+            .replace(/\/$/, "");
 
     }
+
 
     return (
         `${req.protocol}://` +
@@ -503,7 +527,7 @@ function getBaseUrl(req) {
 
 
 /* =========================================================
-   VERIFY PAYSTACK PAYMENT
+   PAYSTACK VERIFICATION
 ========================================================= */
 
 async function verifyPayment(
@@ -562,13 +586,6 @@ async function verifyPayment(
     }
 
 
-    /*
-        Postgres NUMERIC values may
-        arrive as strings.
-
-        Convert before calculating.
-    */
-
     const expectedAmount =
         Math.round(
             Number(
@@ -577,7 +594,8 @@ async function verifyPayment(
         );
 
 
-    const valid =
+    const paymentValid =
+
         transaction.status ===
             "success" &&
 
@@ -590,7 +608,7 @@ async function verifyPayment(
             "GHS";
 
 
-    if (!valid) {
+    if (!paymentValid) {
 
         return {
             success: false
@@ -598,6 +616,11 @@ async function verifyPayment(
 
     }
 
+
+    /*
+        Idempotent:
+        don't process payment twice.
+    */
 
     if (
         order.payment_status !==
@@ -615,7 +638,7 @@ async function verifyPayment(
 
         success: true,
 
-        order
+        orderId: order.id
 
     };
 
@@ -625,8 +648,7 @@ async function verifyPayment(
 /* =========================================================
    PAYSTACK WEBHOOK
 
-   IMPORTANT:
-   This must appear before express.json()
+   MUST BE BEFORE express.json()
 ========================================================= */
 
 app.post(
@@ -708,7 +730,7 @@ app.post(
                 } catch (error) {
 
                     console.error(
-                        "Webhook verify:",
+                        "Webhook verification:",
                         error.message
                     );
 
@@ -739,11 +761,13 @@ app.post(
 
 
 /* =========================================================
-   NORMAL EXPRESS
+   NORMAL EXPRESS MIDDLEWARE
 ========================================================= */
 
 app.use(
-    express.json()
+    express.json({
+        limit: "100kb"
+    })
 );
 
 
@@ -758,7 +782,7 @@ app.use(
 
 
 /* =========================================================
-   PRODUCTS
+   PRODUCTS API
 ========================================================= */
 
 app.get(
@@ -778,7 +802,7 @@ app.get(
 
 
 /* =========================================================
-   START PAYSTACK PAYMENT
+   INITIALIZE PAYSTACK PAYMENT
 ========================================================= */
 
 app.post(
@@ -805,20 +829,72 @@ app.post(
 
 
             if (
-                !customerName ||
-                !phone ||
-                !email
+                typeof customerName !==
+                    "string" ||
+
+                typeof phone !==
+                    "string" ||
+
+                typeof email !==
+                    "string"
             ) {
 
                 return res
                     .status(400)
                     .json({
 
-                        success:
-                            false,
+                        success: false,
 
                         error:
-                            "Please enter your name, phone number and email."
+                            "Invalid customer information."
+
+                    });
+
+            }
+
+
+            const cleanName =
+                customerName
+                    .trim()
+                    .slice(
+                        0,
+                        100
+                    );
+
+
+            const cleanPhone =
+                phone
+                    .trim()
+                    .slice(
+                        0,
+                        30
+                    );
+
+
+            const cleanEmail =
+                email
+                    .trim()
+                    .toLowerCase()
+                    .slice(
+                        0,
+                        150
+                    );
+
+
+            if (
+                !cleanName ||
+                !cleanPhone ||
+                !cleanEmail
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success: false,
+
+                        error:
+                            "Please enter your name, phone and email."
 
                     });
 
@@ -829,18 +905,20 @@ app.post(
                 !Array.isArray(
                     items
                 ) ||
-                items.length === 0
+
+                items.length === 0 ||
+
+                items.length > 20
             ) {
 
                 return res
                     .status(400)
                     .json({
 
-                        success:
-                            false,
+                        success: false,
 
                         error:
-                            "Your cart is empty."
+                            "Invalid cart."
 
                     });
 
@@ -855,6 +933,26 @@ app.post(
                 const productId
                 of items
             ) {
+
+                if (
+                    typeof productId !==
+                    "string"
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+
+                            success:
+                                false,
+
+                            error:
+                                "Invalid product."
+
+                        });
+
+                }
+
 
                 const product =
                     getProduct(
@@ -888,8 +986,8 @@ app.post(
 
 
             /*
-                Price calculated
-                ONLY by server.
+                IMPORTANT:
+                Server calculates price.
             */
 
             const total =
@@ -899,6 +997,7 @@ app.post(
                             sum,
                             product
                         ) =>
+
                             sum +
                             Number(
                                 product
@@ -921,18 +1020,20 @@ app.post(
 
 
             /*
-                Save pending order
-                in PostgreSQL.
+                Create PostgreSQL order.
             */
 
             const order =
                 await createOrder({
 
-                    customerName,
+                    customerName:
+                        cleanName,
 
-                    phone,
+                    phone:
+                        cleanPhone,
 
-                    email,
+                    email:
+                        cleanEmail,
 
                     product:
                         productNames,
@@ -960,10 +1061,10 @@ app.post(
 
 
             /*
-                Ghana cedis → pesewas.
+                GHS → pesewas.
             */
 
-            const amount =
+            const amountInPesewas =
                 Math.round(
                     total * 100
                 );
@@ -973,7 +1074,7 @@ app.post(
                 `${getBaseUrl(req)}/api/paystack/callback`;
 
 
-            const response =
+            const paystackResponse =
                 await fetch(
 
                     "https://api.paystack.co/transaction/initialize",
@@ -997,10 +1098,11 @@ app.post(
                         body:
                             JSON.stringify({
 
-                                email,
+                                email:
+                                    cleanEmail,
 
                                 amount:
-                                    amount
+                                    amountInPesewas
                                         .toString(),
 
                                 currency:
@@ -1015,11 +1117,13 @@ app.post(
 
                                     orderId,
 
-                                    customerName,
+                                    customerName:
+                                        cleanName,
 
-                                    phone,
+                                    phone:
+                                        cleanPhone,
 
-                                    products:
+                                    items:
                                         selectedProducts
                                             .map(
                                                 product =>
@@ -1036,17 +1140,17 @@ app.post(
 
 
             const paystack =
-                await response
+                await paystackResponse
                     .json();
 
 
             if (
-                !response.ok ||
+                !paystackResponse.ok ||
                 !paystack.status
             ) {
 
                 console.error(
-                    "Paystack:",
+                    "Paystack initialization:",
                     paystack
                 );
 
@@ -1069,8 +1173,7 @@ app.post(
 
             return res.json({
 
-                success:
-                    true,
+                success: true,
 
                 orderId,
 
@@ -1086,7 +1189,7 @@ app.post(
         } catch (error) {
 
             console.error(
-                "Initialize payment:",
+                "Payment initialization:",
                 error
             );
 
@@ -1095,8 +1198,7 @@ app.post(
                 .status(500)
                 .json({
 
-                    success:
-                        false,
+                    success: false,
 
                     error:
                         "Unable to initialize payment."
@@ -1126,7 +1228,11 @@ app.get(
                 .reference;
 
 
-        if (!reference) {
+        if (
+            typeof reference !==
+                "string" ||
+            !reference
+        ) {
 
             return res.redirect(
                 "/?payment=error"
@@ -1155,14 +1261,14 @@ app.get(
 
 
             return res.redirect(
-                "/?payment=failed"
+                `/?payment=failed&reference=${encodeURIComponent(reference)}`
             );
 
 
         } catch (error) {
 
             console.error(
-                "Callback:",
+                "Callback verification:",
                 error
             );
 
@@ -1203,8 +1309,13 @@ app.get(
                 return res
                     .status(404)
                     .json({
+
                         success:
-                            false
+                            false,
+
+                        error:
+                            "Order not found."
+
                     });
 
             }
@@ -1231,8 +1342,10 @@ app.get(
             return res
                 .status(500)
                 .json({
+
                     success:
                         false
+
                 });
 
         }
@@ -1242,7 +1355,7 @@ app.get(
 
 
 /* =========================================================
-   ADMIN LOGIN
+   ADMIN SECURITY
 ========================================================= */
 
 function safeCompare(
@@ -1253,6 +1366,7 @@ function safeCompare(
     if (
         typeof supplied !==
             "string" ||
+
         typeof expected !==
             "string"
     ) {
@@ -1262,21 +1376,21 @@ function safeCompare(
     }
 
 
-    const first =
+    const suppliedBuffer =
         Buffer.from(
             supplied
         );
 
 
-    const second =
+    const expectedBuffer =
         Buffer.from(
             expected
         );
 
 
     if (
-        first.length !==
-        second.length
+        suppliedBuffer.length !==
+        expectedBuffer.length
     ) {
 
         return false;
@@ -1286,12 +1400,16 @@ function safeCompare(
 
     return crypto
         .timingSafeEqual(
-            first,
-            second
+            suppliedBuffer,
+            expectedBuffer
         );
 
 }
 
+
+/* =========================================================
+   ADMIN LOGIN
+========================================================= */
 
 function adminAuth(
     req,
@@ -1331,8 +1449,7 @@ function adminAuth(
         const decoded =
             Buffer
                 .from(
-                    auth
-                        .slice(6),
+                    auth.slice(6),
                     "base64"
                 )
                 .toString(
@@ -1350,9 +1467,7 @@ function adminAuth(
             separator === -1
         ) {
 
-            throw new Error(
-                "Invalid login."
-            );
+            throw new Error();
 
         }
 
@@ -1370,30 +1485,34 @@ function adminAuth(
             );
 
 
-        const validUsername =
+        const usernameValid =
             safeCompare(
+
                 username,
+
                 process.env
                     .ADMIN_USERNAME
+
             );
 
 
-        const validPassword =
+        const passwordValid =
             safeCompare(
+
                 password,
+
                 process.env
                     .ADMIN_PASSWORD
+
             );
 
 
         if (
-            !validUsername ||
-            !validPassword
+            !usernameValid ||
+            !passwordValid
         ) {
 
-            throw new Error(
-                "Invalid login."
-            );
+            throw new Error();
 
         }
 
@@ -1502,6 +1621,189 @@ app.get(
 
 
 /* =========================================================
+   UPDATE FULFILLMENT STATUS
+========================================================= */
+
+app.patch(
+    "/api/admin/orders/:id/fulfillment",
+
+    adminAuth,
+
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const orderId =
+                Number(
+                    req.params.id
+                );
+
+
+            const {
+                status
+            } = req.body;
+
+
+            if (
+                !Number.isInteger(
+                    orderId
+                ) ||
+
+                orderId <= 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Invalid order."
+
+                    });
+
+            }
+
+
+            const allowedStatuses = [
+                "pending",
+                "processing",
+                "completed",
+                "cancelled"
+            ];
+
+
+            if (
+                !allowedStatuses
+                    .includes(
+                        status
+                    )
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Invalid fulfillment status."
+
+                    });
+
+            }
+
+
+            const existingOrder =
+                await findOrderById(
+                    orderId
+                );
+
+
+            if (!existingOrder) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Order not found."
+
+                    });
+
+            }
+
+
+            /*
+                Processing/completed orders
+                must first have successful payment.
+            */
+
+            if (
+                (
+                    status ===
+                        "processing" ||
+
+                    status ===
+                        "completed"
+                ) &&
+
+                existingOrder
+                    .payment_status !==
+                    "paid"
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Only paid orders can be processed or completed."
+
+                    });
+
+            }
+
+
+            const order =
+                await updateFulfillmentStatus(
+
+                    orderId,
+
+                    status
+
+                );
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                order
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Fulfillment update:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    error:
+                        "Unable to update fulfillment."
+
+                });
+
+        }
+
+    }
+);
+
+
+/* =========================================================
    WEBSITE FALLBACK
 ========================================================= */
 
@@ -1526,7 +1828,7 @@ app.get(
 
 
 /* =========================================================
-   START SERVER ONLY AFTER DATABASE IS READY
+   START SERVER
 ========================================================= */
 
 async function startServer() {
@@ -1557,11 +1859,27 @@ async function startServer() {
         }
 
 
+        if (
+            !process.env
+                .ADMIN_USERNAME ||
+
+            !process.env
+                .ADMIN_PASSWORD
+        ) {
+
+            throw new Error(
+                "Admin credentials are missing."
+            );
+
+        }
+
+
         await initDatabase();
 
 
         app.listen(
             PORT,
+
             () => {
 
                 console.log(
