@@ -16,7 +16,9 @@ const pool = new Pool({
 async function initDatabase() {
 
     await pool.query(`
-        CREATE TABLE IF NOT EXISTS orders (
+        CREATE TABLE IF NOT EXISTS orders (ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS fulfillment_status TEXT
+    NOT NULL DEFAULT 'pending'
 
             id BIGSERIAL PRIMARY KEY,
 
