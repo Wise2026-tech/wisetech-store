@@ -273,7 +273,15 @@ async function updateFulfillmentStatus(
    EXPORTS
 ========================================================= */
 
-module.exports = {
+module.exports = { pool,
+    initDatabase,
+    createOrder,
+    setPaymentReference,
+    findOrderByReference,
+    markOrderPaid,
+    getAllOrders,
+    getOrderStatus,
+    updateFulfillmentStatus
 
     pool,
 
