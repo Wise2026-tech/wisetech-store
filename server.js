@@ -1,51 +1,41 @@
 require("dotenv").config();
 
 const express = require("express");
-
 const path = require("path");
-
 const crypto = require("crypto");
-
 
 const {
 
     initDatabase,
-
     createOrder,
-
     setPaymentReference,
-
     findOrderByReference,
-
     findOrderById,
-
     markOrderPaid,
-
     getAllOrders,
-
     getOrderStatus,
-
-    updateFulfillmentStatus
+    updateFulfillmentStatus,
+    updateSupplierCost
 
 } = require("./database");
 
 
 const app = express();
 
-
 const PORT =
     process.env.PORT || 3000;
 
 
 /* =========================================================
-   WISETECH PRODUCTS
+   PRODUCT CATALOGUE
+
+   cost = your supplier cost
+   null = enter supplier cost later from Admin
 ========================================================= */
 
 const products = [
 
-    /* =========================
-       MTN DATA
-    ========================= */
+    /* ================= MTN ================= */
 
     {
         id: "mtn-1gb",
@@ -53,7 +43,8 @@ const products = [
         service: "MTN",
         name: "MTN 1GB",
         displayName: "1GB",
-        price: 6
+        price: 6,
+        cost: 4.70
     },
 
     {
@@ -62,7 +53,8 @@ const products = [
         service: "MTN",
         name: "MTN 2GB",
         displayName: "2GB",
-        price: 11
+        price: 11,
+        cost: 9.00
     },
 
     {
@@ -71,7 +63,8 @@ const products = [
         service: "MTN",
         name: "MTN 3GB",
         displayName: "3GB",
-        price: 15
+        price: 15,
+        cost: 13.00
     },
 
     {
@@ -80,7 +73,8 @@ const products = [
         service: "MTN",
         name: "MTN 4GB",
         displayName: "4GB",
-        price: 20
+        price: 20,
+        cost: 17.70
     },
 
     {
@@ -89,7 +83,8 @@ const products = [
         service: "MTN",
         name: "MTN 5GB",
         displayName: "5GB",
-        price: 25
+        price: 25,
+        cost: 22.00
     },
 
     {
@@ -98,7 +93,8 @@ const products = [
         service: "MTN",
         name: "MTN 6GB",
         displayName: "6GB",
-        price: 28
+        price: 28,
+        cost: 24.80
     },
 
     {
@@ -107,7 +103,8 @@ const products = [
         service: "MTN",
         name: "MTN 8GB",
         displayName: "8GB",
-        price: 36
+        price: 36,
+        cost: 32.80
     },
 
     {
@@ -116,7 +113,8 @@ const products = [
         service: "MTN",
         name: "MTN 10GB",
         displayName: "10GB",
-        price: 47
+        price: 47,
+        cost: 42.50
     },
 
     {
@@ -125,7 +123,8 @@ const products = [
         service: "MTN",
         name: "MTN 15GB",
         displayName: "15GB",
-        price: 65
+        price: 65,
+        cost: 59.50
     },
 
     {
@@ -134,7 +133,8 @@ const products = [
         service: "MTN",
         name: "MTN 20GB",
         displayName: "20GB",
-        price: 85
+        price: 85,
+        cost: 79.00
     },
 
     {
@@ -143,7 +143,8 @@ const products = [
         service: "MTN",
         name: "MTN 25GB",
         displayName: "25GB",
-        price: 105
+        price: 105,
+        cost: 99.00
     },
 
     {
@@ -152,13 +153,12 @@ const products = [
         service: "MTN",
         name: "MTN 30GB",
         displayName: "30GB",
-        price: 128
+        price: 128,
+        cost: 121.00
     },
 
 
-    /* =========================
-       NETFLIX
-    ========================= */
+    /* ================= NETFLIX ================= */
 
     {
         id: "netflix-mobile",
@@ -167,7 +167,8 @@ const products = [
         name: "Netflix Mobile",
         displayName: "Mobile",
         details: "480p SD • 1 device",
-        price: 40
+        price: 40,
+        cost: null
     },
 
     {
@@ -177,7 +178,8 @@ const products = [
         name: "Netflix Basic",
         displayName: "Basic",
         details: "720p HD • 1 device",
-        price: 55
+        price: 55,
+        cost: null
     },
 
     {
@@ -186,9 +188,9 @@ const products = [
         service: "Netflix Subscription",
         name: "Netflix Standard",
         displayName: "Standard",
-        details:
-            "1080p Full HD • 2 devices",
-        price: 110
+        details: "1080p Full HD • 2 devices",
+        price: 110,
+        cost: null
     },
 
     {
@@ -198,120 +200,106 @@ const products = [
         name: "Netflix Premium",
         displayName: "Premium",
         details: "4K + HDR • 4 devices",
-        price: 135
+        price: 135,
+        cost: null
     },
 
 
-    /* =========================
-       YOUTUBE PREMIUM
-    ========================= */
+    /* ================= YOUTUBE ================= */
 
     {
         id: "youtube-student",
         category: "subscription",
-        service:
-            "YouTube Premium Subscription",
-        name:
-            "YouTube Premium Student",
+        service: "YouTube Premium Subscription",
+        name: "YouTube Premium Student",
         displayName: "Student",
         details: "Premium access",
-        price: 120
+        price: 120,
+        cost: null
     },
 
     {
-        id:
-            "youtube-individual-monthly",
+        id: "youtube-individual-monthly",
         category: "subscription",
-        service:
-            "YouTube Premium Subscription",
-        name:
-            "YouTube Premium Individual Monthly",
-        displayName:
-            "Individual Monthly",
+        service: "YouTube Premium Subscription",
+        name: "YouTube Premium Individual Monthly",
+        displayName: "Individual Monthly",
         details: "1 user",
-        price: 200
+        price: 200,
+        cost: null
     },
 
     {
-        id:
-            "youtube-individual-annual",
+        id: "youtube-individual-annual",
         category: "subscription",
-        service:
-            "YouTube Premium Subscription",
-        name:
-            "YouTube Premium Individual Annual",
-        displayName:
-            "Individual Annual",
+        service: "YouTube Premium Subscription",
+        name: "YouTube Premium Individual Annual",
+        displayName: "Individual Annual",
         details: "12 months",
-        price: 1800
+        price: 1800,
+        cost: null
     },
 
     {
         id: "youtube-family",
         category: "subscription",
-        service:
-            "YouTube Premium Subscription",
-        name:
-            "YouTube Premium Family",
+        service: "YouTube Premium Subscription",
+        name: "YouTube Premium Family",
         displayName: "Family",
         details: "Family access",
-        price: 335
+        price: 335,
+        cost: null
     },
 
 
-    /* =========================
-       SPOTIFY
-    ========================= */
+    /* ================= SPOTIFY ================= */
 
     {
         id: "spotify-student",
         category: "subscription",
-        service:
-            "Spotify Premium Subscription",
+        service: "Spotify Premium Subscription",
         name: "Spotify Student",
         displayName: "Student",
-        details:
-            "1 verified student account",
-        price: 18
+        details: "1 verified student account",
+        price: 18,
+        cost: null
     },
 
     {
         id: "spotify-individual",
         category: "subscription",
-        service:
-            "Spotify Premium Subscription",
+        service: "Spotify Premium Subscription",
         name: "Spotify Individual",
         displayName: "Individual",
         details: "1 account",
-        price: 30
+        price: 30,
+        cost: null
     },
 
     {
         id: "spotify-duo",
         category: "subscription",
-        service:
-            "Spotify Premium Subscription",
+        service: "Spotify Premium Subscription",
         name: "Spotify Duo",
         displayName: "Duo",
         details: "2 accounts",
-        price: 42
+        price: 42,
+        cost: null
     },
 
     {
         id: "spotify-family",
         category: "subscription",
-        service:
-            "Spotify Premium Subscription",
+        service: "Spotify Premium Subscription",
         name: "Spotify Family",
         displayName: "Family",
         details: "Up to 6 members",
-        price: 55
+        price: 55,
+        cost: null
     },
 
 
-    /* =========================
-       DSTV
-    ========================= */
+    /* ================= DSTV ================= */
 
     {
         id: "dstv-padi",
@@ -320,7 +308,8 @@ const products = [
         name: "DStv Padi / Lite",
         displayName: "Padi / Lite",
         details: "40+ channels",
-        price: 65
+        price: 65,
+        cost: null
     },
 
     {
@@ -330,7 +319,8 @@ const products = [
         name: "DStv Access",
         displayName: "Access",
         details: "75+ channels",
-        price: 110
+        price: 110,
+        cost: null
     },
 
     {
@@ -340,7 +330,8 @@ const products = [
         name: "DStv Family",
         displayName: "Family",
         details: "95+ channels",
-        price: 205
+        price: 205,
+        cost: null
     },
 
     {
@@ -350,7 +341,8 @@ const products = [
         name: "DStv Compact",
         displayName: "Compact",
         details: "120+ channels",
-        price: 410
+        price: 410,
+        cost: null
     },
 
     {
@@ -360,7 +352,8 @@ const products = [
         name: "DStv Compact Plus",
         displayName: "Compact Plus",
         details: "135+ channels",
-        price: 610
+        price: 610,
+        cost: null
     },
 
     {
@@ -370,13 +363,12 @@ const products = [
         name: "DStv Premium",
         displayName: "Premium",
         details: "150+ channels",
-        price: 925
+        price: 925,
+        cost: null
     },
 
 
-    /* =========================
-       GOTV
-    ========================= */
+    /* ================= GOTV ================= */
 
     {
         id: "gotv-smallie",
@@ -385,7 +377,8 @@ const products = [
         name: "GOtv Smallie / Lite",
         displayName: "Smallie / Lite",
         details: "30+ channels",
-        price: 30
+        price: 30,
+        cost: null
     },
 
     {
@@ -395,7 +388,8 @@ const products = [
         name: "GOtv Plus / Value",
         displayName: "Plus / Value",
         details: "45+ channels",
-        price: 110
+        price: 110,
+        cost: null
     },
 
     {
@@ -405,7 +399,8 @@ const products = [
         name: "GOtv Max",
         displayName: "Max",
         details: "55+ channels",
-        price: 195
+        price: 195,
+        cost: null
     },
 
     {
@@ -415,7 +410,8 @@ const products = [
         name: "GOtv Supa",
         displayName: "Supa",
         details: "70+ channels",
-        price: 250
+        price: 250,
+        cost: null
     },
 
     {
@@ -425,129 +421,103 @@ const products = [
         name: "GOtv Supa Plus",
         displayName: "Supa Plus",
         details: "75+ channels",
-        price: 325
+        price: 325,
+        cost: null
     },
 
 
-    /* =========================
-       PRIME VIDEO
-    ========================= */
+    /* ================= PRIME VIDEO ================= */
 
     {
         id: "prime-ghana",
         category: "subscription",
-        service:
-            "Prime Video Subscription",
-        name:
-            "Prime Video Ghana Direct",
+        service: "Prime Video Subscription",
+        name: "Prime Video Ghana Direct",
         displayName: "Ghana Direct",
-        details:
-            "3 streams • Offline downloads",
-        price: 75
+        details: "3 streams • Offline downloads",
+        price: 75,
+        cost: null
     },
 
     {
         id: "prime-us-video",
         category: "subscription",
-        service:
-            "Prime Video Subscription",
+        service: "Prime Video Subscription",
         name: "US Prime Video",
         displayName: "US Prime Video",
         details: "Prime Video access",
-        price: 110
+        price: 110,
+        cost: null
     },
 
     {
         id: "prime-full",
         category: "subscription",
-        service:
-            "Prime Video Subscription",
-        name:
-            "US Full Amazon Prime",
-        displayName:
-            "Full Amazon Prime",
-        details:
-            "Video + Prime benefits",
-        price: 185
+        service: "Prime Video Subscription",
+        name: "US Full Amazon Prime",
+        displayName: "Full Amazon Prime",
+        details: "Video + Prime benefits",
+        price: 185,
+        cost: null
     },
 
     {
         id: "prime-student",
         category: "subscription",
-        service:
-            "Prime Video Subscription",
+        service: "Prime Video Subscription",
         name: "US Prime Student",
         displayName: "Prime Student",
         details: "Prime perks",
-        price: 90
+        price: 90,
+        cost: null
     }
 
 ];
 
 
 /* =========================================================
-   PRODUCT LOOKUP
+   HELPERS
 ========================================================= */
 
-function getProduct(
-    productId
-) {
+function getProduct(productId) {
 
     return products.find(
         product =>
             product.id === productId
     );
-
 }
 
 
-/* =========================================================
-   WEBSITE BASE URL
-========================================================= */
-
 function getBaseUrl(req) {
 
-    if (
-        process.env.BASE_URL
-    ) {
+    if (process.env.BASE_URL) {
 
-        return process.env
-            .BASE_URL
+        return process.env.BASE_URL
             .replace(/\/$/, "");
-
     }
 
 
     return (
-        `${req.protocol}://` +
-        `${req.get("host")}`
+        `${req.protocol}://${req.get("host")}`
     );
-
 }
 
 
 /* =========================================================
-   PAYSTACK VERIFICATION
+   VERIFY PAYSTACK
 ========================================================= */
 
-async function verifyPayment(
-    reference
-) {
+async function verifyPayment(reference) {
 
-    const response =
-        await fetch(
-            `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
-            {
-
-                headers: {
-
-                    Authorization:
-                        `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-
-                }
-
+    const response = await fetch(
+        `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
             }
-        );
+        }
+    );
 
 
     const result =
@@ -563,7 +533,6 @@ async function verifyPayment(
             result.message ||
             "Unable to verify payment."
         );
-
     }
 
 
@@ -582,45 +551,48 @@ async function verifyPayment(
         throw new Error(
             "WISETECH order not found."
         );
-
     }
 
 
     const expectedAmount =
         Math.round(
-            Number(
-                order.amount
-            ) * 100
+            Number(order.amount) * 100
         );
 
 
-    const paymentValid =
+    const valid =
+        transaction.status === "success" &&
 
-        transaction.status ===
-            "success" &&
-
-        Number(
-            transaction.amount
-        ) ===
+        Number(transaction.amount) ===
             expectedAmount &&
 
-        transaction.currency ===
-            "GHS";
+        transaction.currency === "GHS";
 
 
-    if (!paymentValid) {
+    if (!valid) {
 
         return {
             success: false
         };
-
     }
 
 
     /*
-        Idempotent:
-        don't process payment twice.
+        Paystack reports fee in the
+        currency's subunit.
+
+        GHS fee → pesewas → cedis.
     */
+
+    const feeInPesewas =
+        Number(
+            transaction.fees || 0
+        );
+
+
+    const feeInGhs =
+        feeInPesewas / 100;
+
 
     if (
         order.payment_status !==
@@ -628,41 +600,31 @@ async function verifyPayment(
     ) {
 
         await markOrderPaid(
-            order.id
+            order.id,
+            feeInGhs
         );
-
     }
 
 
     return {
-
         success: true,
-
         orderId: order.id
-
     };
-
 }
 
 
 /* =========================================================
    PAYSTACK WEBHOOK
-
-   MUST BE BEFORE express.json()
 ========================================================= */
 
 app.post(
     "/api/paystack/webhook",
 
     express.raw({
-        type:
-            "application/json"
+        type: "application/json"
     }),
 
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         try {
 
@@ -674,9 +636,7 @@ app.post(
 
             if (!signature) {
 
-                return res
-                    .sendStatus(401);
-
+                return res.sendStatus(401);
             }
 
 
@@ -684,34 +644,23 @@ app.post(
                 crypto
                     .createHmac(
                         "sha512",
-                        process.env
-                            .PAYSTACK_SECRET_KEY
+                        process.env.PAYSTACK_SECRET_KEY
                     )
-                    .update(
-                        req.body
-                    )
-                    .digest(
-                        "hex"
-                    );
+                    .update(req.body)
+                    .digest("hex");
 
 
-            if (
-                hash !==
-                signature
-            ) {
+            if (hash !== signature) {
 
-                return res
-                    .sendStatus(401);
-
+                return res.sendStatus(401);
             }
 
 
             const event =
                 JSON.parse(
-                    req.body
-                        .toString(
-                            "utf8"
-                        )
+                    req.body.toString(
+                        "utf8"
+                    )
                 );
 
 
@@ -723,8 +672,7 @@ app.post(
                 try {
 
                     await verifyPayment(
-                        event.data
-                            .reference
+                        event.data.reference
                     );
 
                 } catch (error) {
@@ -733,14 +681,11 @@ app.post(
                         "Webhook verification:",
                         error.message
                     );
-
                 }
-
             }
 
 
-            return res
-                .sendStatus(200);
+            return res.sendStatus(200);
 
 
         } catch (error) {
@@ -751,17 +696,14 @@ app.post(
             );
 
 
-            return res
-                .sendStatus(500);
-
+            return res.sendStatus(500);
         }
-
     }
 );
 
 
 /* =========================================================
-   NORMAL EXPRESS MIDDLEWARE
+   EXPRESS
 ========================================================= */
 
 app.use(
@@ -788,43 +730,43 @@ app.use(
 app.get(
     "/api/products",
 
-    (
-        req,
-        res
-    ) => {
+    (req, res) => {
 
-        res.json(
-            products
-        );
+        /*
+            Don't expose supplier costs
+            to customers.
+        */
 
+        const publicProducts =
+            products.map(
+                ({
+                    cost,
+                    ...product
+                }) => product
+            );
+
+
+        res.json(publicProducts);
     }
 );
 
 
 /* =========================================================
-   INITIALIZE PAYSTACK PAYMENT
+   INITIALIZE PAYMENT
 ========================================================= */
 
 app.post(
     "/api/paystack/initialize",
 
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         try {
 
             const {
-
                 customerName,
-
                 phone,
-
                 email,
-
                 items
-
             } = req.body;
 
 
@@ -842,43 +784,30 @@ app.post(
                 return res
                     .status(400)
                     .json({
-
                         success: false,
-
                         error:
                             "Invalid customer information."
-
                     });
-
             }
 
 
             const cleanName =
                 customerName
                     .trim()
-                    .slice(
-                        0,
-                        100
-                    );
+                    .slice(0, 100);
 
 
             const cleanPhone =
                 phone
                     .trim()
-                    .slice(
-                        0,
-                        30
-                    );
+                    .slice(0, 30);
 
 
             const cleanEmail =
                 email
                     .trim()
                     .toLowerCase()
-                    .slice(
-                        0,
-                        150
-                    );
+                    .slice(0, 150);
 
 
             if (
@@ -890,43 +819,30 @@ app.post(
                 return res
                     .status(400)
                     .json({
-
                         success: false,
-
                         error:
                             "Please enter your name, phone and email."
-
                     });
-
             }
 
 
             if (
-                !Array.isArray(
-                    items
-                ) ||
-
+                !Array.isArray(items) ||
                 items.length === 0 ||
-
                 items.length > 20
             ) {
 
                 return res
                     .status(400)
                     .json({
-
                         success: false,
-
                         error:
                             "Invalid cart."
-
                     });
-
             }
 
 
-            const selectedProducts =
-                [];
+            const selectedProducts = [];
 
 
             for (
@@ -942,15 +858,10 @@ app.post(
                     return res
                         .status(400)
                         .json({
-
-                            success:
-                                false,
-
+                            success: false,
                             error:
                                 "Invalid product."
-
                         });
-
                 }
 
 
@@ -965,47 +876,60 @@ app.post(
                     return res
                         .status(400)
                         .json({
-
-                            success:
-                                false,
-
+                            success: false,
                             error:
                                 "Invalid product selected."
-
                         });
-
                 }
 
 
-                selectedProducts
-                    .push(
-                        product
-                    );
-
+                selectedProducts.push(
+                    product
+                );
             }
 
 
             /*
-                IMPORTANT:
-                Server calculates price.
+                Price always comes from server.
             */
 
             const total =
-                selectedProducts
-                    .reduce(
-                        (
-                            sum,
-                            product
-                        ) =>
+                selectedProducts.reduce(
+                    (sum, product) =>
+                        sum +
+                        Number(product.price),
+                    0
+                );
 
-                            sum +
-                            Number(
-                                product
-                                    .price
-                            ),
 
-                        0
-                    );
+            /*
+                Supplier cost is automatically
+                calculated only when ALL products
+                have known costs.
+
+                Premium-app costs remain NULL
+                until entered by admin.
+            */
+
+            const allCostsKnown =
+                selectedProducts.every(
+                    product =>
+                        product.cost !== null &&
+                        product.cost !== undefined
+                );
+
+
+            const supplierCost =
+                allCostsKnown
+
+                ? selectedProducts.reduce(
+                    (sum, product) =>
+                        sum +
+                        Number(product.cost),
+                    0
+                )
+
+                : null;
 
 
             const productNames =
@@ -1014,14 +938,8 @@ app.post(
                         product =>
                             product.name
                     )
-                    .join(
-                        ", "
-                    );
+                    .join(", ");
 
-
-            /*
-                Create PostgreSQL order.
-            */
 
             const order =
                 await createOrder({
@@ -1039,15 +957,15 @@ app.post(
                         productNames,
 
                     amount:
-                        total
+                        total,
+
+                    supplierCost
 
                 });
 
 
             const orderId =
-                Number(
-                    order.id
-                );
+                Number(order.id);
 
 
             const reference =
@@ -1059,10 +977,6 @@ app.post(
                 reference
             );
 
-
-            /*
-                GHS → pesewas.
-            */
 
             const amountInPesewas =
                 Math.round(
@@ -1076,13 +990,9 @@ app.post(
 
             const paystackResponse =
                 await fetch(
-
                     "https://api.paystack.co/transaction/initialize",
-
                     {
-
-                        method:
-                            "POST",
+                        method: "POST",
 
                         headers: {
 
@@ -1091,9 +1001,7 @@ app.post(
 
                             "Content-Type":
                                 "application/json"
-
                         },
-
 
                         body:
                             JSON.stringify({
@@ -1129,13 +1037,9 @@ app.post(
                                                 product =>
                                                     product.id
                                             )
-
                                 }
-
                             })
-
                     }
-
                 );
 
 
@@ -1158,16 +1062,12 @@ app.post(
                 return res
                     .status(500)
                     .json({
-
-                        success:
-                            false,
+                        success: false,
 
                         error:
                             paystack.message ||
                             "Unable to start payment."
-
                     });
-
             }
 
 
@@ -1197,16 +1097,11 @@ app.post(
             return res
                 .status(500)
                 .json({
-
                     success: false,
-
                     error:
                         "Unable to initialize payment."
-
                 });
-
         }
-
     }
 );
 
@@ -1218,14 +1113,10 @@ app.post(
 app.get(
     "/api/paystack/callback",
 
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         const reference =
-            req.query
-                .reference;
+            req.query.reference;
 
 
         if (
@@ -1237,7 +1128,6 @@ app.get(
             return res.redirect(
                 "/?payment=error"
             );
-
         }
 
 
@@ -1249,14 +1139,11 @@ app.get(
                 );
 
 
-            if (
-                result.success
-            ) {
+            if (result.success) {
 
                 return res.redirect(
                     `/?payment=success&reference=${encodeURIComponent(reference)}`
                 );
-
             }
 
 
@@ -1276,9 +1163,7 @@ app.get(
             return res.redirect(
                 "/?payment=error"
             );
-
         }
-
     }
 );
 
@@ -1290,17 +1175,13 @@ app.get(
 app.get(
     "/api/orders/:reference/status",
 
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         try {
 
             const order =
                 await getOrderStatus(
-                    req.params
-                        .reference
+                    req.params.reference
                 );
 
 
@@ -1309,25 +1190,16 @@ app.get(
                 return res
                     .status(404)
                     .json({
-
-                        success:
-                            false,
-
+                        success: false,
                         error:
                             "Order not found."
-
                     });
-
             }
 
 
             return res.json({
-
-                success:
-                    true,
-
+                success: true,
                 order
-
             });
 
 
@@ -1342,14 +1214,9 @@ app.get(
             return res
                 .status(500)
                 .json({
-
-                    success:
-                        false
-
+                    success: false
                 });
-
         }
-
     }
 );
 
@@ -1364,52 +1231,36 @@ function safeCompare(
 ) {
 
     if (
-        typeof supplied !==
-            "string" ||
-
-        typeof expected !==
-            "string"
+        typeof supplied !== "string" ||
+        typeof expected !== "string"
     ) {
 
         return false;
-
     }
 
 
-    const suppliedBuffer =
-        Buffer.from(
-            supplied
-        );
+    const a =
+        Buffer.from(supplied);
 
 
-    const expectedBuffer =
-        Buffer.from(
-            expected
-        );
+    const b =
+        Buffer.from(expected);
 
 
     if (
-        suppliedBuffer.length !==
-        expectedBuffer.length
+        a.length !== b.length
     ) {
 
         return false;
-
     }
 
 
-    return crypto
-        .timingSafeEqual(
-            suppliedBuffer,
-            expectedBuffer
-        );
-
+    return crypto.timingSafeEqual(
+        a,
+        b
+    );
 }
 
-
-/* =========================================================
-   ADMIN LOGIN
-========================================================= */
 
 function adminAuth(
     req,
@@ -1418,15 +1269,12 @@ function adminAuth(
 ) {
 
     const auth =
-        req.headers
-            .authorization;
+        req.headers.authorization;
 
 
     if (
         !auth ||
-        !auth.startsWith(
-            "Basic "
-        )
+        !auth.startsWith("Basic ")
     ) {
 
         res.setHeader(
@@ -1440,7 +1288,6 @@ function adminAuth(
             .send(
                 "WISETECH Admin Login Required"
             );
-
     }
 
 
@@ -1452,23 +1299,16 @@ function adminAuth(
                     auth.slice(6),
                     "base64"
                 )
-                .toString(
-                    "utf8"
-                );
+                .toString("utf8");
 
 
         const separator =
-            decoded.indexOf(
-                ":"
-            );
+            decoded.indexOf(":");
 
 
-        if (
-            separator === -1
-        ) {
+        if (separator === -1) {
 
             throw new Error();
-
         }
 
 
@@ -1485,35 +1325,19 @@ function adminAuth(
             );
 
 
-        const usernameValid =
-            safeCompare(
-
-                username,
-
-                process.env
-                    .ADMIN_USERNAME
-
-            );
-
-
-        const passwordValid =
-            safeCompare(
-
-                password,
-
-                process.env
-                    .ADMIN_PASSWORD
-
-            );
-
-
         if (
-            !usernameValid ||
-            !passwordValid
+            !safeCompare(
+                username,
+                process.env.ADMIN_USERNAME
+            ) ||
+
+            !safeCompare(
+                password,
+                process.env.ADMIN_PASSWORD
+            )
         ) {
 
             throw new Error();
-
         }
 
 
@@ -1533,9 +1357,7 @@ function adminAuth(
             .send(
                 "Invalid admin login."
             );
-
     }
-
 }
 
 
@@ -1548,10 +1370,7 @@ app.get(
 
     adminAuth,
 
-    (
-        req,
-        res
-    ) => {
+    (req, res) => {
 
         res.sendFile(
             path.join(
@@ -1559,7 +1378,6 @@ app.get(
                 "admin.html"
             )
         );
-
     }
 );
 
@@ -1573,10 +1391,7 @@ app.get(
 
     adminAuth,
 
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         try {
 
@@ -1585,12 +1400,8 @@ app.get(
 
 
             return res.json({
-
-                success:
-                    true,
-
+                success: true,
                 orders
-
             });
 
 
@@ -1605,23 +1416,117 @@ app.get(
             return res
                 .status(500)
                 .json({
-
-                    success:
-                        false,
-
+                    success: false,
                     error:
                         "Unable to load orders."
-
                 });
-
         }
-
     }
 );
 
 
 /* =========================================================
-   UPDATE FULFILLMENT STATUS
+   ADMIN — UPDATE SUPPLIER COST
+========================================================= */
+
+app.patch(
+    "/api/admin/orders/:id/supplier-cost",
+
+    adminAuth,
+
+    async (req, res) => {
+
+        try {
+
+            const orderId =
+                Number(req.params.id);
+
+
+            const supplierCost =
+                Number(
+                    req.body.supplierCost
+                );
+
+
+            if (
+                !Number.isInteger(orderId) ||
+                orderId <= 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        success: false,
+                        error:
+                            "Invalid order."
+                    });
+            }
+
+
+            if (
+                !Number.isFinite(
+                    supplierCost
+                ) ||
+
+                supplierCost < 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        success: false,
+                        error:
+                            "Enter a valid supplier cost."
+                    });
+            }
+
+
+            const order =
+                await updateSupplierCost(
+                    orderId,
+                    supplierCost
+                );
+
+
+            if (!order) {
+
+                return res
+                    .status(404)
+                    .json({
+                        success: false,
+                        error:
+                            "Order not found."
+                    });
+            }
+
+
+            return res.json({
+                success: true
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Supplier cost:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    success: false,
+                    error:
+                        "Unable to update supplier cost."
+                });
+        }
+    }
+);
+
+
+/* =========================================================
+   ADMIN — FULFILLMENT
 ========================================================= */
 
 app.patch(
@@ -1629,17 +1534,12 @@ app.patch(
 
     adminAuth,
 
-    async (
-        req,
-        res
-    ) => {
+    async (req, res) => {
 
         try {
 
             const orderId =
-                Number(
-                    req.params.id
-                );
+                Number(req.params.id);
 
 
             const {
@@ -1647,30 +1547,7 @@ app.patch(
             } = req.body;
 
 
-            if (
-                !Number.isInteger(
-                    orderId
-                ) ||
-
-                orderId <= 0
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-
-                        success:
-                            false,
-
-                        error:
-                            "Invalid order."
-
-                    });
-
-            }
-
-
-            const allowedStatuses = [
+            const allowed = [
                 "pending",
                 "processing",
                 "completed",
@@ -1679,108 +1556,74 @@ app.patch(
 
 
             if (
-                !allowedStatuses
-                    .includes(
-                        status
-                    )
+                !Number.isInteger(orderId) ||
+                orderId <= 0 ||
+                !allowed.includes(status)
             ) {
 
                 return res
                     .status(400)
                     .json({
-
-                        success:
-                            false,
-
+                        success: false,
                         error:
-                            "Invalid fulfillment status."
-
+                            "Invalid request."
                     });
-
             }
 
 
-            const existingOrder =
+            const existing =
                 await findOrderById(
                     orderId
                 );
 
 
-            if (!existingOrder) {
+            if (!existing) {
 
                 return res
                     .status(404)
                     .json({
-
-                        success:
-                            false,
-
+                        success: false,
                         error:
                             "Order not found."
-
                     });
-
             }
 
 
-            /*
-                Processing/completed orders
-                must first have successful payment.
-            */
-
             if (
                 (
-                    status ===
-                        "processing" ||
-
-                    status ===
-                        "completed"
+                    status === "processing" ||
+                    status === "completed"
                 ) &&
 
-                existingOrder
-                    .payment_status !==
+                existing.payment_status !==
                     "paid"
             ) {
 
                 return res
                     .status(400)
                     .json({
-
-                        success:
-                            false,
-
+                        success: false,
                         error:
                             "Only paid orders can be processed or completed."
-
                     });
-
             }
 
 
-            const order =
-                await updateFulfillmentStatus(
-
-                    orderId,
-
-                    status
-
-                );
+            await updateFulfillmentStatus(
+                orderId,
+                status
+            );
 
 
             return res.json({
-
-                success:
-                    true,
-
-                order
-
+                success: true
             });
 
 
         } catch (error) {
 
             console.error(
-                "Fulfillment update:",
+                "Fulfillment:",
                 error
             );
 
@@ -1788,32 +1631,23 @@ app.patch(
             return res
                 .status(500)
                 .json({
-
-                    success:
-                        false,
-
+                    success: false,
                     error:
-                        "Unable to update fulfillment."
-
+                        "Unable to update order."
                 });
-
         }
-
     }
 );
 
 
 /* =========================================================
-   WEBSITE FALLBACK
+   FALLBACK
 ========================================================= */
 
 app.get(
     "*",
 
-    (
-        req,
-        res
-    ) => {
+    (req, res) => {
 
         res.sendFile(
             path.join(
@@ -1822,13 +1656,12 @@ app.get(
                 "index.html"
             )
         );
-
     }
 );
 
 
 /* =========================================================
-   START SERVER
+   START
 ========================================================= */
 
 async function startServer() {
@@ -1836,41 +1669,33 @@ async function startServer() {
     try {
 
         if (
-            !process.env
-                .DATABASE_URL
+            !process.env.DATABASE_URL
         ) {
 
             throw new Error(
                 "DATABASE_URL is missing."
             );
-
         }
 
 
         if (
-            !process.env
-                .PAYSTACK_SECRET_KEY
+            !process.env.PAYSTACK_SECRET_KEY
         ) {
 
             throw new Error(
                 "PAYSTACK_SECRET_KEY is missing."
             );
-
         }
 
 
         if (
-            !process.env
-                .ADMIN_USERNAME ||
-
-            !process.env
-                .ADMIN_PASSWORD
+            !process.env.ADMIN_USERNAME ||
+            !process.env.ADMIN_PASSWORD
         ) {
 
             throw new Error(
                 "Admin credentials are missing."
             );
-
         }
 
 
@@ -1885,7 +1710,6 @@ async function startServer() {
                 console.log(
                     `WISETECH running on port ${PORT}`
                 );
-
             }
         );
 
@@ -1899,9 +1723,7 @@ async function startServer() {
 
 
         process.exit(1);
-
     }
-
 }
 
 
