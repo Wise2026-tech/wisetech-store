@@ -4,826 +4,649 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>
-        WISETECH Admin Dashboard
-    </title>
+<title>
+    WISETECH Admin
+</title>
 
 
-    <style>
+<style>
 
-        * {
-            box-sizing: border-box;
-        }
+* {
+    box-sizing: border-box;
+}
 
 
-        body {
+body {
 
-            margin: 0;
+    margin: 0;
 
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 
-            background: #070b12;
+    background: #070b12;
 
-            color: #ffffff;
+    color: white;
+}
 
-        }
 
+header {
 
-        header {
+    position: sticky;
 
-            position: sticky;
+    top: 0;
 
-            top: 0;
+    z-index: 100;
 
-            z-index: 100;
+    display: flex;
 
-            display: flex;
+    justify-content:
+        space-between;
 
-            align-items: center;
+    align-items: center;
 
-            justify-content:
-                space-between;
+    padding: 20px 5%;
 
-            gap: 20px;
+    background: #050505;
 
-            padding:
-                20px 5%;
+    border-bottom:
+        1px solid #222;
+}
 
-            background:
-                rgba(
-                    5,
-                    5,
-                    5,
-                    .96
-                );
 
-            border-bottom:
-                1px solid #222;
+header h1 {
 
-        }
+    margin: 0;
 
+    font-size: 23px;
+}
 
-        header h1 {
 
-            margin: 0;
+header span {
 
-            font-size: 23px;
+    color: #ffd000;
+}
 
-        }
 
+button {
 
-        header h1 span {
+    border: 0;
 
-            color: #ffd000;
+    border-radius: 8px;
 
-        }
+    cursor: pointer;
 
+    font-weight: 800;
+}
 
-        .refresh-button {
 
-            border: 0;
+.refresh {
 
-            padding:
-                11px 18px;
+    padding: 11px 18px;
 
-            border-radius:
-                8px;
+    background: #ffd000;
 
-            background:
-                #ffd000;
+    color: #111;
+}
 
-            color: #111;
 
-            font-weight: 800;
+main {
 
-            cursor: pointer;
+    max-width: 1500px;
 
-        }
+    margin: auto;
 
+    padding: 35px 5%;
+}
 
-        main {
 
-            max-width:
-                1500px;
+/* ================= STATS ================= */
 
-            margin: auto;
+.stats {
 
-            padding:
-                35px 5%;
+    display: grid;
 
-        }
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
 
+    gap: 15px;
 
-        /* ================================
-           STATS
-        ================================= */
+    margin-bottom: 30px;
+}
 
-        .stats {
 
-            display: grid;
+.stat {
 
-            grid-template-columns:
-                repeat(
-                    4,
-                    minmax(
-                        0,
-                        1fr
-                    )
-                );
+    padding: 20px;
 
-            gap: 16px;
+    border:
+        1px solid #263248;
 
-            margin-bottom:
-                30px;
+    border-radius: 14px;
 
-        }
+    background:
+        linear-gradient(
+            145deg,
+            #121a28,
+            #080d14
+        );
+}
 
 
-        .stat {
+.stat small {
 
-            padding:
-                22px;
+    display: block;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    #121a28,
-                    #080d14
-                );
+    color: #91a0b5;
 
-            border:
-                1px solid #253247;
+    margin-bottom: 8px;
+}
 
-            border-radius:
-                14px;
 
-        }
+.stat strong {
 
+    font-size: 25px;
 
-        .stat small {
+    color: #ffd000;
+}
 
-            display: block;
 
-            margin-bottom:
-                8px;
+.profit strong {
 
-            color:
-                #9ba8ba;
+    color: #43e39a;
+}
 
-            font-size:
-                12px;
 
-        }
+/* ================= FILTER ================= */
 
+.toolbar {
 
-        .stat strong {
+    display: flex;
 
-            font-size:
-                27px;
+    gap: 10px;
 
-            color:
-                #ffd000;
+    flex-wrap: wrap;
 
-        }
+    margin-bottom: 20px;
+}
 
 
-        /* ================================
-           TOOLBAR
-        ================================= */
+input,
+select {
 
-        .toolbar {
+    padding: 11px;
 
-            display: flex;
+    border-radius: 8px;
 
-            gap: 12px;
+    border:
+        1px solid #2b394e;
 
-            flex-wrap: wrap;
+    background: #0b111c;
 
-            margin-bottom:
-                20px;
+    color: white;
+}
 
-        }
 
+#search {
 
-        input,
-        select,
-        button {
+    flex: 1;
 
-            font: inherit;
+    min-width: 230px;
+}
 
-        }
 
+/* ================= ORDERS ================= */
 
-        input,
-        select {
+.orders {
 
-            padding:
-                11px 12px;
+    display: grid;
 
-            border:
-                1px solid #2b394e;
+    gap: 16px;
+}
 
-            border-radius:
-                8px;
 
-            background:
-                #0b111c;
+.order {
 
-            color:
-                #ffffff;
+    padding: 21px;
 
-        }
+    border:
+        1px solid #263248;
 
+    border-radius: 15px;
 
-        input {
+    background:
+        linear-gradient(
+            145deg,
+            #101823,
+            #090e16
+        );
+}
 
-            flex: 1;
 
-            min-width:
-                220px;
+.top {
 
-        }
+    display: flex;
 
+    justify-content:
+        space-between;
 
-        /* ================================
-           ORDERS
-        ================================= */
+    gap: 15px;
 
-        .orders {
+    margin-bottom: 17px;
+}
 
-            display: grid;
 
-            gap: 16px;
+.number {
 
-        }
+    color: #ffd000;
 
+    font-weight: 900;
 
-        .order-card {
+    font-size: 12px;
+}
 
-            padding:
-                22px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    #101823,
-                    #090e16
-                );
+.product {
 
-            border:
-                1px solid #263248;
+    margin-top: 6px;
 
-            border-radius:
-                15px;
+    font-size: 18px;
 
-        }
+    font-weight: 800;
+}
 
 
-        .order-top {
+.amount {
 
-            display: flex;
+    color: #ffd000;
 
-            justify-content:
-                space-between;
+    font-size: 21px;
 
-            align-items:
-                flex-start;
+    font-weight: 900;
+}
 
-            gap: 15px;
 
-            margin-bottom:
-                18px;
+/* ================= CUSTOMER ================= */
 
-        }
+.customer {
 
+    display: grid;
 
-        .order-number {
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
 
-            color:
-                #ffd000;
+    gap: 15px;
 
-            font-size:
-                13px;
+    padding: 15px 0;
 
-            font-weight:
-                900;
+    border-top:
+        1px solid #202c3e;
+}
 
-        }
 
+.customer small,
+.finance small {
 
-        .order-product {
+    display: block;
 
-            margin-top:
-                6px;
+    color: #8290a5;
 
-            font-size:
-                19px;
+    margin-bottom: 5px;
+}
 
-            font-weight:
-                800;
 
-        }
+.customer strong {
 
+    font-size: 13px;
 
-        .order-amount {
+    word-break: break-word;
+}
 
-            font-size:
-                21px;
 
-            font-weight:
-                900;
+/* ================= FINANCE ================= */
 
-            color:
-                #ffd000;
+.finance {
 
-            white-space:
-                nowrap;
+    display: grid;
 
-        }
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0, 1fr)
+        );
 
+    gap: 12px;
 
-        .order-info {
+    padding: 15px;
 
-            display: grid;
+    margin-top: 10px;
 
-            grid-template-columns:
-                repeat(
-                    4,
-                    minmax(
-                        0,
-                        1fr
-                    )
-                );
+    border-radius: 10px;
 
-            gap: 15px;
+    background: #070c13;
+}
 
-            padding:
-                15px 0;
 
-            border-top:
-                1px solid #202c3e;
+.finance strong {
 
-            border-bottom:
-                1px solid #202c3e;
+    font-size: 15px;
+}
 
-        }
 
+.net-profit {
 
-        .order-info small {
+    color: #43e39a;
+}
 
-            display: block;
 
-            margin-bottom:
-                5px;
+.unknown {
 
-            color:
-                #8090a5;
+    color: #ffcf40;
+}
 
-        }
 
+/* ================= SUPPLIER COST ================= */
 
-        .order-info strong {
+.cost-editor {
 
-            font-size:
-                13px;
+    display: flex;
 
-            word-break:
-                break-word;
+    gap: 7px;
 
-        }
+    margin-top: 8px;
+}
 
 
-        /* ================================
-           STATUS
-        ================================= */
+.cost-editor input {
 
-        .status-row {
+    width: 120px;
+}
 
-            display: flex;
 
-            align-items:
-                center;
+.save-cost {
 
-            justify-content:
-                space-between;
+    padding: 9px 12px;
 
-            flex-wrap: wrap;
+    background: #ffd000;
 
-            gap: 15px;
+    color: #111;
+}
 
-            margin-top:
-                18px;
 
-        }
+/* ================= STATUS ================= */
 
+.status-row {
 
-        .status-group {
+    display: flex;
 
-            display: flex;
+    justify-content:
+        space-between;
 
-            gap: 10px;
+    gap: 15px;
 
-            align-items:
-                center;
+    align-items: center;
 
-            flex-wrap:
-                wrap;
+    flex-wrap: wrap;
 
-        }
+    margin-top: 17px;
+}
 
 
-        .status {
+.badges {
 
-            display:
-                inline-block;
+    display: flex;
 
-            padding:
-                7px 11px;
+    gap: 8px;
 
-            border-radius:
-                20px;
+    flex-wrap: wrap;
+}
 
-            font-size:
-                10px;
 
-            font-weight:
-                900;
+.badge {
 
-            text-transform:
-                uppercase;
+    padding: 7px 10px;
 
-        }
+    border-radius: 20px;
 
+    font-size: 10px;
 
-        .paid {
+    font-weight: 900;
 
-            background:
-                rgba(
-                    38,
-                    208,
-                    124,
-                    .15
-                );
+    text-transform: uppercase;
+}
 
-            color:
-                #42e69a;
 
-        }
+.paid,
+.completed {
 
+    background:
+        rgba(
+            40,
+            220,
+            140,
+            .15
+        );
 
-        .payment-pending {
+    color: #43e39a;
+}
 
-            background:
-                rgba(
-                    255,
-                    208,
-                    0,
-                    .15
-                );
 
-            color:
-                #ffd000;
+.pending {
 
-        }
+    background:
+        rgba(
+            255,
+            208,
+            0,
+            .15
+        );
 
+    color: #ffd000;
+}
 
-        .pending {
 
-            background:
-                rgba(
-                    255,
-                    208,
-                    0,
-                    .15
-                );
+.processing {
 
-            color:
-                #ffd000;
+    background:
+        rgba(
+            60,
+            150,
+            255,
+            .16
+        );
 
-        }
+    color: #68b5ff;
+}
 
 
-        .processing {
+.cancelled {
 
-            background:
-                rgba(
-                    70,
-                    160,
-                    255,
-                    .18
-                );
+    background:
+        rgba(
+            255,
+            60,
+            60,
+            .15
+        );
 
-            color:
-                #66b4ff;
+    color: #ff7272;
+}
 
-        }
 
+/* ================= ACTIONS ================= */
 
-        .completed {
+.actions {
 
-            background:
-                rgba(
-                    40,
-                    220,
-                    140,
-                    .18
-                );
+    display: flex;
 
-            color:
-                #48e3a0;
+    gap: 7px;
 
-        }
+    flex-wrap: wrap;
+}
 
 
-        .cancelled {
+.actions button {
 
-            background:
-                rgba(
-                    255,
-                    70,
-                    70,
-                    .16
-                );
+    padding: 8px 10px;
 
-            color:
-                #ff7272;
+    font-size: 10px;
+}
 
-        }
 
+.pending-btn {
 
-        /* ================================
-           ACTION BUTTONS
-        ================================= */
+    background: #ffd000;
 
-        .actions {
+    color: #111;
+}
 
-            display: flex;
 
-            gap: 8px;
+.processing-btn {
 
-            flex-wrap:
-                wrap;
+    background: #278cff;
 
-        }
+    color: white;
+}
 
 
-        .action {
+.complete-btn {
 
-            padding:
-                8px 11px;
+    background: #27d17f;
 
-            border: 0;
+    color: #07120d;
+}
 
-            border-radius:
-                7px;
 
-            font-size:
-                10px;
+.cancel-btn {
 
-            font-weight:
-                800;
+    background: #df3947;
 
-            cursor: pointer;
+    color: white;
+}
 
-        }
 
+.actions button:disabled {
 
-        .process-button {
+    opacity: .35;
 
-            background:
-                #2d8cff;
+    cursor: not-allowed;
+}
 
-            color:
-                white;
 
-        }
+.reference {
 
+    margin-top: 12px;
 
-        .complete-button {
+    color: #77869b;
 
-            background:
-                #27d17f;
+    font-size: 10px;
 
-            color:
-                #07120d;
+    word-break: break-all;
+}
 
-        }
 
+.empty {
 
-        .reset-button {
+    padding: 50px;
 
-            background:
-                #ffd000;
+    text-align: center;
 
-            color:
-                #111;
+    color: #8997aa;
+}
 
-        }
 
+/* ================= MOBILE ================= */
 
-        .cancel-button {
+@media (max-width: 900px) {
 
-            background:
-                #e63946;
+    .stats {
 
-            color:
-                #fff;
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
 
-        }
 
+    .customer,
+    .finance {
 
-        .action:disabled {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
 
-            opacity:
-                .35;
 
-            cursor:
-                not-allowed;
+@media (max-width: 600px) {
 
-        }
+    header {
 
+        padding: 17px 15px;
+    }
 
-        .reference {
 
-            margin-top:
-                13px;
+    main {
 
-            color:
-                #77869b;
+        padding: 25px 14px;
+    }
 
-            font-size:
-                10px;
 
-            word-break:
-                break-all;
+    .stats {
 
-        }
+        gap: 9px;
+    }
 
 
-        .empty {
+    .stat {
 
-            padding:
-                60px 20px;
+        padding: 15px;
+    }
 
-            text-align:
-                center;
 
-            color:
-                #8997aa;
+    .stat strong {
 
-            border:
-                1px solid #263248;
+        font-size: 19px;
+    }
 
-            border-radius:
-                15px;
 
-        }
+    .top {
 
+        flex-direction: column;
+    }
 
-        /* ================================
-           MOBILE
-        ================================= */
 
-        @media (
-            max-width: 900px
-        ) {
+    .customer,
+    .finance {
 
-            .stats {
+        grid-template-columns: 1fr;
+    }
 
-                grid-template-columns:
-                    repeat(
-                        2,
-                        1fr
-                    );
 
-            }
+    .actions {
 
+        width: 100%;
+    }
 
-            .order-info {
 
-                grid-template-columns:
-                    repeat(
-                        2,
-                        1fr
-                    );
+    .actions button {
 
-            }
+        flex: 1;
+    }
+}
 
-        }
-
-
-        @media (
-            max-width: 600px
-        ) {
-
-            header {
-
-                padding:
-                    17px 15px;
-
-            }
-
-
-            header h1 {
-
-                font-size:
-                    19px;
-
-            }
-
-
-            main {
-
-                padding:
-                    25px 14px;
-
-            }
-
-
-            .stats {
-
-                grid-template-columns:
-                    1fr 1fr;
-
-                gap: 10px;
-
-            }
-
-
-            .stat {
-
-                padding:
-                    16px;
-
-            }
-
-
-            .stat strong {
-
-                font-size:
-                    21px;
-
-            }
-
-
-            .order-card {
-
-                padding:
-                    17px;
-
-            }
-
-
-            .order-top {
-
-                flex-direction:
-                    column;
-
-            }
-
-
-            .order-info {
-
-                grid-template-columns:
-                    1fr;
-
-            }
-
-
-            .status-row {
-
-                align-items:
-                    flex-start;
-
-            }
-
-
-            .actions {
-
-                width: 100%;
-
-            }
-
-
-            .action {
-
-                flex: 1;
-
-            }
-
-        }
-
-    </style>
+</style>
 
 </head>
 
@@ -833,23 +656,17 @@
 
 <header>
 
-    <h1>
-
-        WISE<span>TECH</span>
-
-        Admin
-
-    </h1>
+<h1>
+    WISE<span>TECH</span> Admin
+</h1>
 
 
-    <button
-        class="refresh-button"
-        onclick="loadOrders()"
-    >
-
-        Refresh
-
-    </button>
+<button
+    class="refresh"
+    onclick="loadOrders()"
+>
+    Refresh
+</button>
 
 </header>
 
@@ -857,163 +674,132 @@
 <main>
 
 
-    <!-- ========================
-         STATS
-    ========================= -->
+<section class="stats">
 
-    <section class="stats">
+    <div class="stat">
 
+        <small>
+            Paid Revenue
+        </small>
 
-        <div class="stat">
-
-            <small>
-                Total Orders
-            </small>
-
-            <strong
-                id="totalOrders"
-            >
-                0
-            </strong>
-
-        </div>
-
-
-        <div class="stat">
-
-            <small>
-                Paid Orders
-            </small>
-
-            <strong
-                id="paidOrders"
-            >
-                0
-            </strong>
-
-        </div>
-
-
-        <div class="stat">
-
-            <small>
-                Completed
-            </small>
-
-            <strong
-                id="completedOrders"
-            >
-                0
-            </strong>
-
-        </div>
-
-
-        <div class="stat">
-
-            <small>
-                Paid Revenue
-            </small>
-
-            <strong
-                id="revenue"
-            >
-                GH₵0.00
-            </strong>
-
-        </div>
-
-
-    </section>
-
-
-    <!-- ========================
-         FILTERS
-    ========================= -->
-
-    <div class="toolbar">
-
-
-        <input
-
-            id="search"
-
-            type="text"
-
-            placeholder=
-            "Search customer, phone, product or reference..."
-
-            oninput=
-            "renderOrders()"
-
-        >
-
-
-        <select
-            id="paymentFilter"
-            onchange="renderOrders()"
-        >
-
-            <option value="">
-                All Payments
-            </option>
-
-            <option value="paid">
-                Paid
-            </option>
-
-            <option value="pending">
-                Pending Payment
-            </option>
-
-        </select>
-
-
-        <select
-            id="fulfillmentFilter"
-            onchange="renderOrders()"
-        >
-
-            <option value="">
-                All Fulfillment
-            </option>
-
-            <option value="pending">
-                Pending
-            </option>
-
-            <option value="processing">
-                Processing
-            </option>
-
-            <option value="completed">
-                Completed
-            </option>
-
-            <option value="cancelled">
-                Cancelled
-            </option>
-
-        </select>
-
+        <strong id="revenue">
+            GH₵0.00
+        </strong>
 
     </div>
 
 
-    <!-- ========================
-         ORDERS
-    ========================= -->
+    <div class="stat">
 
-    <div
-        id="orders"
-        class="orders"
+        <small>
+            Supplier Costs
+        </small>
+
+        <strong id="costs">
+            GH₵0.00
+        </strong>
+
+    </div>
+
+
+    <div class="stat">
+
+        <small>
+            Paystack Fees
+        </small>
+
+        <strong id="fees">
+            GH₵0.00
+        </strong>
+
+    </div>
+
+
+    <div class="stat profit">
+
+        <small>
+            Known Net Profit
+        </small>
+
+        <strong id="profit">
+            GH₵0.00
+        </strong>
+
+    </div>
+
+</section>
+
+
+<div class="toolbar">
+
+    <input
+        id="search"
+        placeholder=
+        "Search customer, phone, product or reference..."
+        oninput="renderOrders()"
     >
 
-        <div class="empty">
-            Loading orders...
-        </div>
 
+    <select
+        id="paymentFilter"
+        onchange="renderOrders()"
+    >
+
+        <option value="">
+            All Payments
+        </option>
+
+        <option value="paid">
+            Paid
+        </option>
+
+        <option value="pending">
+            Pending
+        </option>
+
+    </select>
+
+
+    <select
+        id="fulfillmentFilter"
+        onchange="renderOrders()"
+    >
+
+        <option value="">
+            All Fulfillment
+        </option>
+
+        <option value="pending">
+            Pending
+        </option>
+
+        <option value="processing">
+            Processing
+        </option>
+
+        <option value="completed">
+            Completed
+        </option>
+
+        <option value="cancelled">
+            Cancelled
+        </option>
+
+    </select>
+
+</div>
+
+
+<div
+    id="orders"
+    class="orders"
+>
+
+    <div class="empty">
+        Loading orders...
     </div>
+
+</div>
 
 
 </main>
@@ -1021,30 +807,14 @@
 
 <script>
 
-
 let allOrders = [];
 
 
-/* =====================================
-   LOAD ORDERS
-===================================== */
+/* =========================================================
+   LOAD
+========================================================= */
 
 async function loadOrders() {
-
-    const container =
-        document.getElementById(
-            "orders"
-        );
-
-
-    container.innerHTML = `
-
-        <div class="empty">
-            Loading orders...
-        </div>
-
-    `;
-
 
     try {
 
@@ -1063,10 +833,7 @@ async function loadOrders() {
             !result.success
         ) {
 
-            throw new Error(
-                "Unable to load orders."
-            );
-
+            throw new Error();
         }
 
 
@@ -1079,26 +846,28 @@ async function loadOrders() {
         renderOrders();
 
 
-    } catch (error) {
+    } catch {
 
-        container.innerHTML = `
+        document
+            .getElementById(
+                "orders"
+            )
+            .innerHTML = `
 
-            <div class="empty">
+                <div class="empty">
 
-                Unable to load orders.
+                    Unable to load orders.
 
-            </div>
+                </div>
 
-        `;
-
+            `;
     }
-
 }
 
 
-/* =====================================
+/* =========================================================
    STATS
-===================================== */
+========================================================= */
 
 function updateStats() {
 
@@ -1110,52 +879,88 @@ function updateStats() {
         );
 
 
-    const completed =
-        allOrders.filter(
-            order =>
-                order.fulfillment_status ===
-                "completed"
-        );
-
-
     const revenue =
         paid.reduce(
-            (
-                total,
-                order
-            ) =>
-
+            (total, order) =>
                 total +
-                Number(
-                    order.amount
-                ),
-
+                Number(order.amount),
             0
         );
 
 
-    document
-        .getElementById(
-            "totalOrders"
-        )
-        .textContent =
-            allOrders.length;
+    /*
+        Only count known supplier costs.
+    */
+
+    const costs =
+        paid.reduce(
+            (total, order) => {
+
+                if (
+                    order.supplier_cost ===
+                    null
+                ) {
+
+                    return total;
+                }
 
 
-    document
-        .getElementById(
-            "paidOrders"
-        )
-        .textContent =
-            paid.length;
+                return total +
+                    Number(
+                        order.supplier_cost
+                    );
+            },
+            0
+        );
 
 
-    document
-        .getElementById(
-            "completedOrders"
-        )
-        .textContent =
-            completed.length;
+    const fees =
+        paid.reduce(
+            (total, order) => {
+
+                if (
+                    order.paystack_fee ===
+                    null
+                ) {
+
+                    return total;
+                }
+
+
+                return total +
+                    Number(
+                        order.paystack_fee
+                    );
+            },
+            0
+        );
+
+
+    /*
+        Profit only from orders where
+        all values are known.
+    */
+
+    const profit =
+        paid.reduce(
+            (total, order) => {
+
+                if (
+                    order.net_profit ===
+                    null
+                ) {
+
+                    return total;
+                }
+
+
+                return total +
+                    Number(
+                        order.net_profit
+                    );
+            },
+            0
+        );
 
 
     document
@@ -1163,14 +968,37 @@ function updateStats() {
             "revenue"
         )
         .textContent =
-            `GH₵${revenue.toFixed(2)}`;
+            money(revenue);
 
+
+    document
+        .getElementById(
+            "costs"
+        )
+        .textContent =
+            money(costs);
+
+
+    document
+        .getElementById(
+            "fees"
+        )
+        .textContent =
+            money(fees);
+
+
+    document
+        .getElementById(
+            "profit"
+        )
+        .textContent =
+            money(profit);
 }
 
 
-/* =====================================
+/* =========================================================
    RENDER
-===================================== */
+========================================================= */
 
 function renderOrders() {
 
@@ -1190,7 +1018,7 @@ function renderOrders() {
             .toLowerCase();
 
 
-    const paymentFilter =
+    const payment =
         document
             .getElementById(
                 "paymentFilter"
@@ -1198,7 +1026,7 @@ function renderOrders() {
             .value;
 
 
-    const fulfillmentFilter =
+    const fulfillment =
         document
             .getElementById(
                 "fulfillmentFilter"
@@ -1212,73 +1040,54 @@ function renderOrders() {
 
                 const searchable =
                     [
-
                         order.id,
-
                         order.customer_name,
-
                         order.phone,
-
                         order.email,
-
                         order.product,
-
                         order.payment_reference
-
                     ]
                     .join(" ")
                     .toLowerCase();
 
 
-                const matchesSearch =
-                    !search ||
-                    searchable.includes(
-                        search
-                    );
-
-
-                const matchesPayment =
-                    !paymentFilter ||
-                    order.payment_status ===
-                        paymentFilter;
-
-
-                const matchesFulfillment =
-                    !fulfillmentFilter ||
-                    order.fulfillment_status ===
-                        fulfillmentFilter;
-
-
                 return (
 
-                    matchesSearch &&
+                    (
+                        !search ||
+                        searchable.includes(
+                            search
+                        )
+                    ) &&
 
-                    matchesPayment &&
+                    (
+                        !payment ||
+                        order.payment_status ===
+                            payment
+                    ) &&
 
-                    matchesFulfillment
+                    (
+                        !fulfillment ||
+                        order.fulfillment_status ===
+                            fulfillment
+                    )
 
                 );
-
             }
         );
 
 
-    if (
-        filtered.length === 0
-    ) {
+    if (!filtered.length) {
 
         container.innerHTML = `
 
             <div class="empty">
-
                 No orders found.
-
             </div>
 
         `;
 
         return;
-
     }
 
 
@@ -1286,339 +1095,531 @@ function renderOrders() {
         filtered.map(
             order => {
 
-                const paymentClass =
-
-                    order.payment_status ===
-                        "paid"
-
-                    ? "paid"
-
-                    : "payment-pending";
-
-
-                const fulfillment =
-                    order.fulfillment_status ||
-                    "pending";
-
-
-                const paymentIsPaid =
+                const paid =
                     order.payment_status ===
                     "paid";
 
 
+                const costKnown =
+                    order.supplier_cost !==
+                    null;
+
+
+                const feeKnown =
+                    order.paystack_fee !==
+                    null;
+
+
+                const profitKnown =
+                    order.net_profit !==
+                    null;
+
+
                 return `
 
-                    <article class="order-card">
+                <article class="order">
 
 
-                        <div class="order-top">
+                    <div class="top">
 
+                        <div>
 
-                            <div>
+                            <div class="number">
 
-                                <div class="order-number">
-
-                                    ORDER #${order.id}
-
-                                </div>
-
-
-                                <div class="order-product">
-
-                                    ${escapeHtml(
-                                        order.product
-                                    )}
-
-                                </div>
+                                ORDER #${order.id}
 
                             </div>
 
 
-                            <div class="order-amount">
+                            <div class="product">
 
-                                GH₵${Number(
-                                    order.amount
-                                ).toFixed(2)}
+                                ${escapeHtml(
+                                    order.product
+                                )}
 
                             </div>
-
 
                         </div>
 
 
-                        <div class="order-info">
+                        <div class="amount">
 
-
-                            <div>
-
-                                <small>
-                                    Customer
-                                </small>
-
-                                <strong>
-
-                                    ${escapeHtml(
-                                        order.customer_name
-                                    )}
-
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <small>
-                                    Phone
-                                </small>
-
-                                <strong>
-
-                                    ${escapeHtml(
-                                        order.phone
-                                    )}
-
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <small>
-                                    Email
-                                </small>
-
-                                <strong>
-
-                                    ${escapeHtml(
-                                        order.email
-                                    )}
-
-                                </strong>
-
-                            </div>
-
-
-                            <div>
-
-                                <small>
-                                    Date
-                                </small>
-
-                                <strong>
-
-                                    ${formatDate(
-                                        order.created_at
-                                    )}
-
-                                </strong>
-
-                            </div>
-
-
-                        </div>
-
-
-                        <div class="status-row">
-
-
-                            <div class="status-group">
-
-
-                                <span
-                                    class="
-                                    status
-                                    ${paymentClass}
-                                    "
-                                >
-
-                                    PAYMENT:
-                                    ${escapeHtml(
-                                        order.payment_status
-                                    )}
-
-                                </span>
-
-
-                                <span
-                                    class="
-                                    status
-                                    ${escapeHtml(
-                                        fulfillment
-                                    )}
-                                    "
-                                >
-
-                                    ORDER:
-                                    ${escapeHtml(
-                                        fulfillment
-                                    )}
-
-                                </span>
-
-
-                            </div>
-
-
-                            <div class="actions">
-
-
-                                <button
-
-                                    class="
-                                    action
-                                    reset-button
-                                    "
-
-                                    onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'pending'
-                                    )
-                                    "
-                                >
-
-                                    Pending
-
-                                </button>
-
-
-                                <button
-
-                                    class="
-                                    action
-                                    process-button
-                                    "
-
-                                    ${!paymentIsPaid
-                                        ? "disabled"
-                                        : ""
-                                    }
-
-                                    onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'processing'
-                                    )
-                                    "
-                                >
-
-                                    Processing
-
-                                </button>
-
-
-                                <button
-
-                                    class="
-                                    action
-                                    complete-button
-                                    "
-
-                                    ${!paymentIsPaid
-                                        ? "disabled"
-                                        : ""
-                                    }
-
-                                    onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'completed'
-                                    )
-                                    "
-                                >
-
-                                    ✓ Completed
-
-                                </button>
-
-
-                                <button
-
-                                    class="
-                                    action
-                                    cancel-button
-                                    "
-
-                                    onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'cancelled'
-                                    )
-                                    "
-                                >
-
-                                    Cancel
-
-                                </button>
-
-
-                            </div>
-
-
-                        </div>
-
-
-                        <div class="reference">
-
-                            Paystack Reference:
-
-                            ${escapeHtml(
-                                order.payment_reference ||
-                                "-"
+                            ${money(
+                                order.amount
                             )}
 
                         </div>
 
+                    </div>
 
-                    </article>
+
+                    <div class="customer">
+
+
+                        <div>
+
+                            <small>
+                                Customer
+                            </small>
+
+                            <strong>
+
+                                ${escapeHtml(
+                                    order.customer_name
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Phone
+                            </small>
+
+                            <strong>
+
+                                ${escapeHtml(
+                                    order.phone
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Email
+                            </small>
+
+                            <strong>
+
+                                ${escapeHtml(
+                                    order.email
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Date
+                            </small>
+
+                            <strong>
+
+                                ${formatDate(
+                                    order.created_at
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="finance">
+
+
+                        <div>
+
+                            <small>
+                                Customer Paid
+                            </small>
+
+                            <strong>
+
+                                ${money(
+                                    order.amount
+                                )}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Supplier Cost
+                            </small>
+
+
+                            <strong
+                                class="
+                                ${costKnown
+                                    ? ""
+                                    : "unknown"
+                                }
+                                "
+                            >
+
+                                ${costKnown
+                                    ? money(
+                                        order.supplier_cost
+                                      )
+                                    : "Not entered"
+                                }
+
+                            </strong>
+
+
+                            <div class="cost-editor">
+
+                                <input
+
+                                    id="cost-${order.id}"
+
+                                    type="number"
+
+                                    min="0"
+
+                                    step="0.01"
+
+                                    value="${
+                                        costKnown
+                                        ? Number(
+                                            order.supplier_cost
+                                          ).toFixed(2)
+                                        : ""
+                                    }"
+
+                                    placeholder="GH₵"
+
+                                >
+
+
+                                <button
+
+                                    class="save-cost"
+
+                                    onclick="
+                                        saveSupplierCost(
+                                            ${order.id}
+                                        )
+                                    "
+                                >
+
+                                    Save
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Paystack Fee
+                            </small>
+
+                            <strong>
+
+                                ${feeKnown
+                                    ? money(
+                                        order.paystack_fee
+                                      )
+                                    : "—"
+                                }
+
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small>
+                                Net Profit
+                            </small>
+
+                            <strong
+                                class="
+                                ${profitKnown
+                                    ? "net-profit"
+                                    : "unknown"
+                                }
+                                "
+                            >
+
+                                ${profitKnown
+                                    ? money(
+                                        order.net_profit
+                                      )
+                                    : "Waiting for cost"
+                                }
+
+                            </strong>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="status-row">
+
+
+                        <div class="badges">
+
+
+                            <span
+                                class="
+                                badge
+                                ${paid
+                                    ? "paid"
+                                    : "pending"
+                                }
+                                "
+                            >
+
+                                PAYMENT:
+                                ${escapeHtml(
+                                    order.payment_status
+                                )}
+
+                            </span>
+
+
+                            <span
+                                class="
+                                badge
+                                ${escapeHtml(
+                                    order.fulfillment_status
+                                )}
+                                "
+                            >
+
+                                ORDER:
+                                ${escapeHtml(
+                                    order.fulfillment_status
+                                )}
+
+                            </span>
+
+
+                        </div>
+
+
+                        <div class="actions">
+
+
+                            <button
+                                class="pending-btn"
+
+                                onclick="
+                                    changeFulfillment(
+                                        ${order.id},
+                                        'pending'
+                                    )
+                                "
+                            >
+
+                                Pending
+
+                            </button>
+
+
+                            <button
+                                class="processing-btn"
+
+                                ${!paid
+                                    ? "disabled"
+                                    : ""
+                                }
+
+                                onclick="
+                                    changeFulfillment(
+                                        ${order.id},
+                                        'processing'
+                                    )
+                                "
+                            >
+
+                                Processing
+
+                            </button>
+
+
+                            <button
+                                class="complete-btn"
+
+                                ${!paid
+                                    ? "disabled"
+                                    : ""
+                                }
+
+                                onclick="
+                                    changeFulfillment(
+                                        ${order.id},
+                                        'completed'
+                                    )
+                                "
+                            >
+
+                                ✓ Completed
+
+                            </button>
+
+
+                            <button
+                                class="cancel-btn"
+
+                                onclick="
+                                    changeFulfillment(
+                                        ${order.id},
+                                        'cancelled'
+                                    )
+                                "
+                            >
+
+                                Cancel
+
+                            </button>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="reference">
+
+                        Paystack Reference:
+
+                        ${escapeHtml(
+                            order.payment_reference ||
+                            "-"
+                        )}
+
+                    </div>
+
+
+                </article>
 
                 `;
 
             }
         )
         .join("");
-
 }
 
 
-/* =====================================
-   CHANGE FULFILLMENT
-===================================== */
+/* =========================================================
+   SAVE SUPPLIER COST
+========================================================= */
+
+async function saveSupplierCost(
+    orderId
+) {
+
+    const input =
+        document.getElementById(
+            `cost-${orderId}`
+        );
+
+
+    const supplierCost =
+        Number(
+            input.value
+        );
+
+
+    if (
+        input.value.trim() === "" ||
+        !Number.isFinite(
+            supplierCost
+        ) ||
+        supplierCost < 0
+    ) {
+
+        alert(
+            "Enter a valid supplier cost."
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+
+                `/api/admin/orders/${orderId}/supplier-cost`,
+
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            supplierCost
+                        })
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.error ||
+                "Unable to save cost."
+            );
+        }
+
+
+        await loadOrders();
+
+
+    } catch (error) {
+
+        alert(
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
+   FULFILLMENT
+========================================================= */
 
 async function changeFulfillment(
     orderId,
     status
 ) {
 
-    const friendly = {
-
-        pending:
-            "mark this order as pending",
-
-        processing:
-            "start processing this order",
-
-        completed:
-            "mark this order as completed",
-
-        cancelled:
-            "cancel this order"
-
-    };
-
-
-    const confirmed =
-        confirm(
-            `Are you sure you want to ${friendly[status]}?`
-        );
-
-
-    if (!confirmed) {
+    if (
+        !confirm(
+            `Change order to ${status.toUpperCase()}?`
+        )
+    ) {
 
         return;
-
     }
 
 
@@ -1630,24 +1631,18 @@ async function changeFulfillment(
                 `/api/admin/orders/${orderId}/fulfillment`,
 
                 {
-
-                    method:
-                        "PATCH",
+                    method: "PATCH",
 
                     headers: {
-
                         "Content-Type":
                             "application/json"
-
                     },
 
                     body:
                         JSON.stringify({
                             status
                         })
-
                 }
-
             );
 
 
@@ -1664,54 +1659,34 @@ async function changeFulfillment(
                 result.error ||
                 "Unable to update order."
             );
-
         }
 
 
-        const existingIndex =
-            allOrders.findIndex(
-                order =>
-                    Number(order.id) ===
-                    Number(orderId)
-            );
-
-
-        if (
-            existingIndex !== -1
-        ) {
-
-            allOrders[
-                existingIndex
-            ] =
-                result.order;
-
-        }
-
-
-        updateStats();
-
-        renderOrders();
+        await loadOrders();
 
 
     } catch (error) {
 
         alert(
-            error.message ||
-            "Unable to update order."
+            error.message
         );
-
     }
-
 }
 
 
-/* =====================================
-   ESCAPE HTML
-===================================== */
+/* =========================================================
+   HELPERS
+========================================================= */
 
-function escapeHtml(
-    value
-) {
+function money(value) {
+
+    return `GH₵${Number(
+        value || 0
+    ).toFixed(2)}`;
+}
+
+
+function escapeHtml(value) {
 
     return String(
         value ?? ""
@@ -1741,29 +1716,19 @@ function escapeHtml(
         "'",
         "&#039;"
     );
-
 }
 
 
-/* =====================================
-   FORMAT DATE
-===================================== */
-
-function formatDate(
-    value
-) {
+function formatDate(value) {
 
     if (!value) {
 
         return "-";
-
     }
 
 
     const date =
-        new Date(
-            value
-        );
+        new Date(value);
 
 
     if (
@@ -1773,22 +1738,15 @@ function formatDate(
     ) {
 
         return String(value);
-
     }
 
 
     return date
         .toLocaleString();
-
 }
 
 
-/* =====================================
-   START
-===================================== */
-
 loadOrders();
-
 
 </script>
 
