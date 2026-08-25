@@ -1542,8 +1542,13 @@ app.get(
    ADMIN — UPDATE SUPPLIER COST
 ========================================================= */
 
+
+/* =========================================================
+   ADMIN — UPDATE FULFILLMENT + CUSTOMER EMAILS
+========================================================= */
+
 app.patch(
-    "/api/admin/orders/:id/supplier-cost",
+    "/api/admin/orders/:id/fulfillment",
 
     adminAuth,
 
@@ -1552,76 +1557,311 @@ app.patch(
         try {
 
             const orderId =
-                Number(req.params.id);
-
-
-            const supplierCost =
                 Number(
-                    req.body.supplierCost
+                    req.params.id
                 );
 
 
+            const {
+                status
+            } = req.body;
+
+
+            const allowedStatuses = [
+
+                "pending",
+
+                "processing",
+
+                "completed",
+
+                "cancelled"
+
+            ];
+
+
+            /*
+                Validate order ID.
+            */
+
             if (
-                !Number.isInteger(orderId) ||
+                !Number.isInteger(
+                    orderId
+                ) ||
+
                 orderId <= 0
             ) {
 
                 return res
                     .status(400)
                     .json({
-                        success: false,
+
+                        success:
+                            false,
+
                         error:
                             "Invalid order."
+
                     });
+
             }
 
 
-            if (
-                !Number.isFinite(
-                    supplierCost
-                ) ||
+            /*
+                Validate requested status.
+            */
 
-                supplierCost < 0
+            if (
+                !allowedStatuses.includes(
+                    status
+                )
             ) {
 
                 return res
                     .status(400)
                     .json({
-                        success: false,
+
+                        success:
+                            false,
+
                         error:
-                            "Enter a valid supplier cost."
+                            "Invalid fulfillment status."
+
                     });
+
             }
 
 
-            const order =
-                await updateSupplierCost(
-                    orderId,
-                    supplierCost
+            /*
+                Find existing order.
+            */
+
+            const existingOrder =
+                await findOrderById(
+                    orderId
                 );
 
 
-            if (!order) {
+            if (!existingOrder) {
 
                 return res
                     .status(404)
                     .json({
-                        success: false,
+
+                        success:
+                            false,
+
                         error:
                             "Order not found."
+
                     });
+
             }
 
 
+            /*
+                Only PAID orders can move
+                into PROCESSING or COMPLETED.
+            */
+
+            if (
+
+                (
+                    status ===
+                        "processing" ||
+
+                    status ===
+                        "completed"
+                )
+
+                &&
+
+                existingOrder
+                    .payment_status !==
+                    "paid"
+
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Only paid orders can be processed or completed."
+
+                    });
+
+            }
+
+
+            /*
+                Avoid sending duplicate emails
+                if admin clicks the same status again.
+            */
+
+            if (
+                existingOrder
+                    .fulfillment_status ===
+                status
+            ) {
+
+                return res.json({
+
+                    success:
+                        true,
+
+                    order:
+                        existingOrder,
+
+                    message:
+                        "Order already has this status."
+
+                });
+
+            }
+
+
+            /*
+                Update PostgreSQL.
+            */
+
+            const updatedOrder =
+                await updateFulfillmentStatus(
+
+                    orderId,
+
+                    status
+
+                );
+
+
+            if (!updatedOrder) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        success:
+                            false,
+
+                        error:
+                            "Order could not be updated."
+
+                    });
+
+            }
+
+
+            /*
+                ==============================
+                CUSTOMER EMAIL NOTIFICATIONS
+                ==============================
+            */
+
+
+            /*
+                PROCESSING
+            */
+
+            if (
+                status ===
+                "processing"
+            ) {
+
+                sendProcessingEmail(
+                    updatedOrder
+                )
+                .catch(
+                    error => {
+
+                        console.error(
+                            "Processing email:",
+                            error
+                        );
+
+                    }
+                );
+
+            }
+
+
+            /*
+                COMPLETED
+            */
+
+            if (
+                status ===
+                "completed"
+            ) {
+
+                sendCompletedEmail(
+                    updatedOrder
+                )
+                .catch(
+                    error => {
+
+                        console.error(
+                            "Completed email:",
+                            error
+                        );
+
+                    }
+                );
+
+            }
+
+
+            /*
+                CANCELLED
+            */
+
+            if (
+                status ===
+                "cancelled"
+            ) {
+
+                sendCancelledEmail(
+                    updatedOrder
+                )
+                .catch(
+                    error => {
+
+                        console.error(
+                            "Cancelled email:",
+                            error
+                        );
+
+                    }
+                );
+
+            }
+
+
+            /*
+                We intentionally don't send an
+                email when status is changed
+                back to PENDING.
+            */
+
+
             return res.json({
-                success: true
+
+                success:
+                    true,
+
+                order:
+                    updatedOrder
+
             });
 
 
         } catch (error) {
 
             console.error(
-                "Supplier cost:",
+                "Fulfillment update:",
                 error
             );
 
@@ -1629,14 +1869,19 @@ app.patch(
             return res
                 .status(500)
                 .json({
-                    success: false,
+
+                    success:
+                        false,
+
                     error:
-                        "Unable to update supplier cost."
+                        "Unable to update order."
+
                 });
+
         }
+
     }
 );
-
 
 /* =========================================================
    ADMIN — FULFILLMENT
