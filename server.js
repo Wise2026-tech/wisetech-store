@@ -6,18 +6,15 @@ const crypto = require("crypto");
 
 const {
 
-    initDatabase,
-    createOrder,
-    setPaymentReference,
-    findOrderByReference,
-    findOrderById,
-    markOrderPaid,
-    getAllOrders,
-    getOrderStatus,
-    updateFulfillmentStatus,
-    updateSupplierCost
+    sendPaymentReceivedEmail,
 
-} = require("./database");
+    sendProcessingEmail,
+
+    sendCompletedEmail,
+
+    sendCancelledEmail
+
+} = require("./notifications");
 
 
 const app = express();
