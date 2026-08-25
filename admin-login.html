@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>WISETECH Admin Login</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    min-height: 100vh;
+
+    margin: 0;
+
+    display: grid;
+
+    place-items: center;
+
+    padding: 20px;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #17243a,
+            #05080d 60%
+        );
+
+    color: white;
+}
+
+.login-card {
+
+    width: 100%;
+
+    max-width: 420px;
+
+    padding: 35px;
+
+    background:
+        rgba(
+            10,
+            16,
+            27,
+            .96
+        );
+
+    border:
+        1px solid #263550;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 25px 60px
+        rgba(0,0,0,.45);
+}
+
+.logo {
+
+    text-align: center;
+
+    margin-bottom: 30px;
+}
+
+.logo h1 {
+
+    margin: 0;
+
+    color: #ffd000;
+
+    font-size: 31px;
+}
+
+.logo p {
+
+    color: #8997aa;
+}
+
+label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 12px;
+
+    color: #a9b6c9;
+}
+
+input {
+
+    width: 100%;
+
+    padding: 14px;
+
+    margin-bottom: 18px;
+
+    border:
+        1px solid #31425d;
+
+    border-radius: 9px;
+
+    background: #080e18;
+
+    color: white;
+
+    font: inherit;
+
+    outline: none;
+}
+
+input:focus {
+
+    border-color:
+        #ffd000;
+}
+
+button {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    background:
+        #ffd000;
+
+    color: #111;
+
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+button:disabled {
+
+    opacity: .6;
+}
+
+#error {
+
+    display: none;
+
+    margin-top: 15px;
+
+    padding: 11px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(
+            255,
+            70,
+            70,
+            .12
+        );
+
+    color: #ff8585;
+
+    font-size: 12px;
+}
+
+.security {
+
+    margin-top: 22px;
+
+    text-align: center;
+
+    font-size: 11px;
+
+    color: #748298;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="login-card">
+
+    <div class="logo">
+
+        <h1>WISETECH</h1>
+
+        <p>Secure Admin Dashboard</p>
+
+    </div>
+
+
+    <form id="loginForm">
+
+        <label for="username">
+            Username
+        </label>
+
+        <input
+            id="username"
+            autocomplete="username"
+            required
+        >
+
+
+        <label for="password">
+            Password
+        </label>
+
+        <input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            required
+        >
+
+
+        <button
+            id="loginButton"
+            type="submit"
+        >
+            LOGIN
+        </button>
+
+
+        <div id="error"></div>
+
+    </form>
+
+
+    <div class="security">
+
+        🔒 WISETECH Secure Administration
+
+    </div>
+
+</div>
+
+
+<script>
+
+const form =
+    document.getElementById(
+        "loginForm"
+    );
+
+
+form.addEventListener(
+    "submit",
+
+    async event => {
+
+        event.preventDefault();
+
+
+        const button =
+            document.getElementById(
+                "loginButton"
+            );
+
+
+        const errorBox =
+            document.getElementById(
+                "error"
+            );
+
+
+        button.disabled = true;
+
+        button.textContent =
+            "Signing in...";
+
+
+        errorBox.style.display =
+            "none";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/admin/login",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                username:
+                                    document
+                                        .getElementById(
+                                            "username"
+                                        )
+                                        .value,
+
+                                password:
+                                    document
+                                        .getElementById(
+                                            "password"
+                                        )
+                                        .value
+
+                            })
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+
+                throw new Error(
+                    result.error ||
+                    "Unable to sign in."
+                );
+            }
+
+
+            window.location.href =
+                "/admin";
+
+
+        } catch (error) {
+
+            errorBox.textContent =
+                error.message;
+
+            errorBox.style.display =
+                "block";
+
+
+            button.disabled =
+                false;
+
+            button.textContent =
+                "LOGIN";
+        }
+    }
+);
+
+</script>
+
+</body>
+
+</html>
