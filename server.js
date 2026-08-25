@@ -506,6 +506,9 @@ function getBaseUrl(req) {
 /* =========================================================
    VERIFY PAYSTACK
 ========================================================= */
+/* =========================================================
+   VERIFY PAYSTACK PAYMENT + SEND PAYMENT EMAIL
+========================================================= */
 
 async function verifyPayment(reference) {
 
@@ -533,6 +536,7 @@ async function verifyPayment(reference) {
             result.message ||
             "Unable to verify payment."
         );
+
     }
 
 
@@ -551,30 +555,139 @@ async function verifyPayment(reference) {
         throw new Error(
             "WISETECH order not found."
         );
+
     }
 
 
+    /*
+        Convert order amount from
+        Ghana cedis to pesewas.
+
+        Example:
+        GH₵6 = 600 pesewas
+    */
+
     const expectedAmount =
         Math.round(
-            Number(order.amount) * 100
+            Number(
+                order.amount
+            ) * 100
         );
 
 
-    const valid =
-        transaction.status === "success" &&
+    /*
+        Make sure Paystack actually
+        confirmed the correct payment.
+    */
 
-        Number(transaction.amount) ===
+    const validPayment =
+
+        transaction.status ===
+            "success" &&
+
+        Number(
+            transaction.amount
+        ) ===
             expectedAmount &&
 
-        transaction.currency === "GHS";
+        transaction.currency ===
+            "GHS";
 
 
-    if (!valid) {
+    if (!validPayment) {
 
         return {
             success: false
         };
+
     }
+
+
+    /*
+        Paystack gives fees in pesewas.
+
+        Convert to Ghana cedis.
+    */
+
+    const feeInPesewas =
+        Number(
+            transaction.fees || 0
+        );
+
+
+    const feeInGhs =
+        feeInPesewas / 100;
+
+
+    /*
+        Only process the payment once.
+
+        This prevents duplicate callback
+        or webhook events from sending
+        multiple confirmation emails.
+    */
+
+    if (
+        order.payment_status !==
+        "paid"
+    ) {
+
+        /*
+            Mark payment as PAID
+            and save actual Paystack fee.
+        */
+
+        await markOrderPaid(
+            order.id,
+            feeInGhs
+        );
+
+
+        /*
+            Reload the order so the email
+            contains the latest information.
+        */
+
+        const paidOrder =
+            await findOrderById(
+                order.id
+            );
+
+
+        /*
+            Send customer confirmation email.
+
+            IMPORTANT:
+            If email fails, payment remains PAID.
+        */
+
+        sendPaymentReceivedEmail(
+            paidOrder
+        )
+        .catch(
+            error => {
+
+                console.error(
+                    "Payment confirmation email:",
+                    error
+                );
+
+            }
+        );
+
+    }
+
+
+    return {
+
+        success: true,
+
+        orderId:
+            order.id
+
+    };
+
+}
 
 
     /*
