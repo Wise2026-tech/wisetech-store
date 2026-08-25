@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -11,9 +10,7 @@
     content="width=device-width, initial-scale=1.0"
 >
 
-<title>
-    WISETECH Admin
-</title>
+<title>WISETECH Admin</title>
 
 
 <style>
@@ -21,7 +18,6 @@
 * {
     box-sizing: border-box;
 }
-
 
 body {
 
@@ -36,7 +32,6 @@ body {
 
     color: white;
 }
-
 
 header {
 
@@ -53,7 +48,9 @@ header {
 
     align-items: center;
 
-    padding: 20px 5%;
+    gap: 15px;
+
+    padding: 18px 5%;
 
     background: #050505;
 
@@ -61,20 +58,24 @@ header {
         1px solid #222;
 }
 
-
 header h1 {
 
     margin: 0;
 
-    font-size: 23px;
+    font-size: 22px;
 }
 
-
-header span {
+header h1 span {
 
     color: #ffd000;
 }
 
+.header-actions {
+
+    display: flex;
+
+    gap: 8px;
+}
 
 button {
 
@@ -87,16 +88,23 @@ button {
     font-weight: 800;
 }
 
-
 .refresh {
 
-    padding: 11px 18px;
+    padding: 10px 15px;
 
     background: #ffd000;
 
     color: #111;
 }
 
+.logout {
+
+    padding: 10px 15px;
+
+    background: #242b36;
+
+    color: white;
+}
 
 main {
 
@@ -107,9 +115,6 @@ main {
     padding: 35px 5%;
 }
 
-
-/* ================= STATS ================= */
-
 .stats {
 
     display: grid;
@@ -117,14 +122,13 @@ main {
     grid-template-columns:
         repeat(
             4,
-            minmax(0, 1fr)
+            minmax(0,1fr)
         );
 
     gap: 15px;
 
     margin-bottom: 30px;
 }
-
 
 .stat {
 
@@ -143,7 +147,6 @@ main {
         );
 }
 
-
 .stat small {
 
     display: block;
@@ -153,22 +156,17 @@ main {
     margin-bottom: 8px;
 }
 
-
 .stat strong {
 
-    font-size: 25px;
+    font-size: 24px;
 
     color: #ffd000;
 }
-
 
 .profit strong {
 
     color: #43e39a;
 }
-
-
-/* ================= FILTER ================= */
 
 .toolbar {
 
@@ -180,7 +178,6 @@ main {
 
     margin-bottom: 20px;
 }
-
 
 input,
 select {
@@ -197,7 +194,6 @@ select {
     color: white;
 }
 
-
 #search {
 
     flex: 1;
@@ -205,16 +201,12 @@ select {
     min-width: 230px;
 }
 
-
-/* ================= ORDERS ================= */
-
 .orders {
 
     display: grid;
 
     gap: 16px;
 }
-
 
 .order {
 
@@ -233,7 +225,6 @@ select {
         );
 }
 
-
 .top {
 
     display: flex;
@@ -246,16 +237,14 @@ select {
     margin-bottom: 17px;
 }
 
-
 .number {
 
     color: #ffd000;
 
-    font-weight: 900;
-
     font-size: 12px;
-}
 
+    font-weight: 900;
+}
 
 .product {
 
@@ -266,7 +255,6 @@ select {
     font-weight: 800;
 }
 
-
 .amount {
 
     color: #ffd000;
@@ -276,27 +264,38 @@ select {
     font-weight: 900;
 }
 
-
-/* ================= CUSTOMER ================= */
-
-.customer {
+.customer,
+.finance {
 
     display: grid;
 
     grid-template-columns:
         repeat(
             4,
-            minmax(0, 1fr)
+            minmax(0,1fr)
         );
 
     gap: 15px;
 
     padding: 15px 0;
+}
+
+.customer {
 
     border-top:
         1px solid #202c3e;
 }
 
+.finance {
+
+    padding: 15px;
+
+    margin-top: 10px;
+
+    border-radius: 10px;
+
+    background: #070c13;
+}
 
 .customer small,
 .finance small {
@@ -308,58 +307,15 @@ select {
     margin-bottom: 5px;
 }
 
-
-.customer strong {
-
-    font-size: 13px;
-
-    word-break: break-word;
-}
-
-
-/* ================= FINANCE ================= */
-
-.finance {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            4,
-            minmax(0, 1fr)
-        );
-
-    gap: 12px;
-
-    padding: 15px;
-
-    margin-top: 10px;
-
-    border-radius: 10px;
-
-    background: #070c13;
-}
-
-
-.finance strong {
-
-    font-size: 15px;
-}
-
-
 .net-profit {
 
     color: #43e39a;
 }
 
-
 .unknown {
 
     color: #ffcf40;
 }
-
-
-/* ================= SUPPLIER COST ================= */
 
 .cost-editor {
 
@@ -370,24 +326,19 @@ select {
     margin-top: 8px;
 }
 
-
 .cost-editor input {
 
-    width: 120px;
+    width: 110px;
 }
-
 
 .save-cost {
 
-    padding: 9px 12px;
+    padding: 9px 11px;
 
     background: #ffd000;
 
     color: #111;
 }
-
-
-/* ================= STATUS ================= */
 
 .status-row {
 
@@ -405,16 +356,15 @@ select {
     margin-top: 17px;
 }
 
-
-.badges {
+.badges,
+.actions {
 
     display: flex;
 
-    gap: 8px;
+    gap: 7px;
 
     flex-wrap: wrap;
 }
-
 
 .badge {
 
@@ -428,7 +378,6 @@ select {
 
     text-transform: uppercase;
 }
-
 
 .paid,
 .completed {
@@ -444,7 +393,6 @@ select {
     color: #43e39a;
 }
 
-
 .pending {
 
     background:
@@ -457,7 +405,6 @@ select {
 
     color: #ffd000;
 }
-
 
 .processing {
 
@@ -472,7 +419,6 @@ select {
     color: #68b5ff;
 }
 
-
 .cancelled {
 
     background:
@@ -486,26 +432,12 @@ select {
     color: #ff7272;
 }
 
-
-/* ================= ACTIONS ================= */
-
-.actions {
-
-    display: flex;
-
-    gap: 7px;
-
-    flex-wrap: wrap;
-}
-
-
 .actions button {
 
     padding: 8px 10px;
 
     font-size: 10px;
 }
-
 
 .pending-btn {
 
@@ -514,14 +446,12 @@ select {
     color: #111;
 }
 
-
 .processing-btn {
 
     background: #278cff;
 
     color: white;
 }
-
 
 .complete-btn {
 
@@ -530,7 +460,6 @@ select {
     color: #07120d;
 }
 
-
 .cancel-btn {
 
     background: #df3947;
@@ -538,14 +467,12 @@ select {
     color: white;
 }
 
-
 .actions button:disabled {
 
     opacity: .35;
 
     cursor: not-allowed;
 }
-
 
 .reference {
 
@@ -558,7 +485,6 @@ select {
     word-break: break-all;
 }
 
-
 .empty {
 
     padding: 50px;
@@ -568,64 +494,51 @@ select {
     color: #8997aa;
 }
 
+@media(max-width:900px) {
 
-/* ================= MOBILE ================= */
-
-@media (max-width: 900px) {
-
-    .stats {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-
+    .stats,
     .customer,
     .finance {
 
         grid-template-columns:
-            repeat(2, 1fr);
+            repeat(2,1fr);
     }
 }
 
-
-@media (max-width: 600px) {
+@media(max-width:600px) {
 
     header {
-
-        padding: 17px 15px;
-    }
-
-
-    main {
-
-        padding: 25px 14px;
-    }
-
-
-    .stats {
-
-        gap: 9px;
-    }
-
-
-    .stat {
 
         padding: 15px;
     }
 
+    header h1 {
+
+        font-size: 18px;
+    }
+
+    main {
+
+        padding: 24px 14px;
+    }
+
+    .stats {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+        gap: 9px;
+    }
+
+    .stat {
+
+        padding: 14px;
+    }
 
     .stat strong {
 
-        font-size: 19px;
+        font-size: 18px;
     }
-
-
-    .top {
-
-        flex-direction: column;
-    }
-
 
     .customer,
     .finance {
@@ -633,16 +546,9 @@ select {
         grid-template-columns: 1fr;
     }
 
+    .top {
 
-    .actions {
-
-        width: 100%;
-    }
-
-
-    .actions button {
-
-        flex: 1;
+        flex-direction: column;
     }
 }
 
@@ -656,17 +562,29 @@ select {
 
 <header>
 
-<h1>
-    WISE<span>TECH</span> Admin
-</h1>
+    <h1>
+        WISE<span>TECH</span> Admin
+    </h1>
 
 
-<button
-    class="refresh"
-    onclick="loadOrders()"
->
-    Refresh
-</button>
+    <div class="header-actions">
+
+        <button
+            class="refresh"
+            onclick="loadOrders()"
+        >
+            Refresh
+        </button>
+
+
+        <button
+            class="logout"
+            onclick="logout()"
+        >
+            Logout
+        </button>
+
+    </div>
 
 </header>
 
@@ -734,8 +652,7 @@ select {
 
     <input
         id="search"
-        placeholder=
-        "Search customer, phone, product or reference..."
+        placeholder="Search customer, phone, product or reference..."
         oninput="renderOrders()"
     >
 
@@ -809,9 +726,58 @@ select {
 
 let allOrders = [];
 
+let csrfToken = "";
+
 
 /* =========================================================
-   LOAD
+   SESSION
+========================================================= */
+
+async function loadSession() {
+
+    const response =
+        await fetch(
+            "/api/admin/session"
+        );
+
+
+    if (
+        response.status ===
+        401
+    ) {
+
+        window.location.href =
+            "/admin/login";
+
+        return false;
+    }
+
+
+    const result =
+        await response.json();
+
+
+    if (
+        !result.success
+    ) {
+
+        window.location.href =
+            "/admin/login";
+
+        return false;
+    }
+
+
+    csrfToken =
+        result.csrfToken;
+
+
+    return true;
+}
+
+
+/* =========================================================
+   ORDERS
 ========================================================= */
 
 async function loadOrders() {
@@ -822,6 +788,18 @@ async function loadOrders() {
             await fetch(
                 "/api/admin/orders"
             );
+
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            window.location.href =
+                "/admin/login";
+
+            return;
+        }
 
 
         const result =
@@ -855,9 +833,7 @@ async function loadOrders() {
             .innerHTML = `
 
                 <div class="empty">
-
                     Unable to load orders.
-
                 </div>
 
             `;
@@ -881,84 +857,65 @@ function updateStats() {
 
     const revenue =
         paid.reduce(
-            (total, order) =>
+            (
+                total,
+                order
+            ) =>
                 total +
-                Number(order.amount),
+                Number(
+                    order.amount
+                ),
             0
         );
 
 
-    /*
-        Only count known supplier costs.
-    */
-
     const costs =
         paid.reduce(
-            (total, order) => {
-
-                if (
-                    order.supplier_cost ===
+            (
+                total,
+                order
+            ) =>
+                order.supplier_cost ===
                     null
-                ) {
-
-                    return total;
-                }
-
-
-                return total +
-                    Number(
-                        order.supplier_cost
-                    );
-            },
+                ? total
+                : total +
+                  Number(
+                      order.supplier_cost
+                  ),
             0
         );
 
 
     const fees =
         paid.reduce(
-            (total, order) => {
-
-                if (
-                    order.paystack_fee ===
+            (
+                total,
+                order
+            ) =>
+                order.paystack_fee ===
                     null
-                ) {
-
-                    return total;
-                }
-
-
-                return total +
-                    Number(
-                        order.paystack_fee
-                    );
-            },
+                ? total
+                : total +
+                  Number(
+                      order.paystack_fee
+                  ),
             0
         );
 
 
-    /*
-        Profit only from orders where
-        all values are known.
-    */
-
     const profit =
         paid.reduce(
-            (total, order) => {
-
-                if (
-                    order.net_profit ===
+            (
+                total,
+                order
+            ) =>
+                order.net_profit ===
                     null
-                ) {
-
-                    return total;
-                }
-
-
-                return total +
-                    Number(
-                        order.net_profit
-                    );
-            },
+                ? total
+                : total +
+                  Number(
+                      order.net_profit
+                  ),
             0
         );
 
@@ -1001,12 +958,6 @@ function updateStats() {
 ========================================================= */
 
 function renderOrders() {
-
-    const container =
-        document.getElementById(
-            "orders"
-        );
-
 
     const search =
         document
@@ -1077,6 +1028,12 @@ function renderOrders() {
         );
 
 
+    const container =
+        document.getElementById(
+            "orders"
+        );
+
+
     if (!filtered.length) {
 
         container.innerHTML = `
@@ -1119,7 +1076,6 @@ function renderOrders() {
 
                 <article class="order">
 
-
                     <div class="top">
 
                         <div>
@@ -1129,7 +1085,6 @@ function renderOrders() {
                                 ORDER #${order.id}
 
                             </div>
-
 
                             <div class="product">
 
@@ -1155,7 +1110,6 @@ function renderOrders() {
 
                     <div class="customer">
 
-
                         <div>
 
                             <small>
@@ -1163,11 +1117,9 @@ function renderOrders() {
                             </small>
 
                             <strong>
-
                                 ${escapeHtml(
                                     order.customer_name
                                 )}
-
                             </strong>
 
                         </div>
@@ -1180,11 +1132,9 @@ function renderOrders() {
                             </small>
 
                             <strong>
-
                                 ${escapeHtml(
                                     order.phone
                                 )}
-
                             </strong>
 
                         </div>
@@ -1197,11 +1147,9 @@ function renderOrders() {
                             </small>
 
                             <strong>
-
                                 ${escapeHtml(
                                     order.email
                                 )}
-
                             </strong>
 
                         </div>
@@ -1214,21 +1162,17 @@ function renderOrders() {
                             </small>
 
                             <strong>
-
                                 ${formatDate(
                                     order.created_at
                                 )}
-
                             </strong>
 
                         </div>
-
 
                     </div>
 
 
                     <div class="finance">
-
 
                         <div>
 
@@ -1237,11 +1181,9 @@ function renderOrders() {
                             </small>
 
                             <strong>
-
                                 ${money(
                                     order.amount
                                 )}
-
                             </strong>
 
                         </div>
@@ -1253,17 +1195,16 @@ function renderOrders() {
                                 Supplier Cost
                             </small>
 
-
                             <strong
-                                class="
-                                ${costKnown
+                                class="${
+                                    costKnown
                                     ? ""
                                     : "unknown"
-                                }
-                                "
+                                }"
                             >
 
-                                ${costKnown
+                                ${
+                                    costKnown
                                     ? money(
                                         order.supplier_cost
                                       )
@@ -1276,15 +1217,10 @@ function renderOrders() {
                             <div class="cost-editor">
 
                                 <input
-
                                     id="cost-${order.id}"
-
                                     type="number"
-
                                     min="0"
-
                                     step="0.01"
-
                                     value="${
                                         costKnown
                                         ? Number(
@@ -1292,25 +1228,14 @@ function renderOrders() {
                                           ).toFixed(2)
                                         : ""
                                     }"
-
                                     placeholder="GH₵"
-
                                 >
-
 
                                 <button
-
                                     class="save-cost"
-
-                                    onclick="
-                                        saveSupplierCost(
-                                            ${order.id}
-                                        )
-                                    "
+                                    onclick="saveSupplierCost(${order.id})"
                                 >
-
                                     Save
-
                                 </button>
 
                             </div>
@@ -1326,7 +1251,8 @@ function renderOrders() {
 
                             <strong>
 
-                                ${feeKnown
+                                ${
+                                    feeKnown
                                     ? money(
                                         order.paystack_fee
                                       )
@@ -1345,15 +1271,15 @@ function renderOrders() {
                             </small>
 
                             <strong
-                                class="
-                                ${profitKnown
+                                class="${
+                                    profitKnown
                                     ? "net-profit"
                                     : "unknown"
-                                }
-                                "
+                                }"
                             >
 
-                                ${profitKnown
+                                ${
+                                    profitKnown
                                     ? money(
                                         order.net_profit
                                       )
@@ -1364,24 +1290,19 @@ function renderOrders() {
 
                         </div>
 
-
                     </div>
 
 
                     <div class="status-row">
 
-
                         <div class="badges">
 
-
                             <span
-                                class="
-                                badge
-                                ${paid
+                                class="badge ${
+                                    paid
                                     ? "paid"
                                     : "pending"
-                                }
-                                "
+                                }"
                             >
 
                                 PAYMENT:
@@ -1393,12 +1314,9 @@ function renderOrders() {
 
 
                             <span
-                                class="
-                                badge
-                                ${escapeHtml(
+                                class="badge ${escapeHtml(
                                     order.fulfillment_status
-                                )}
-                                "
+                                )}"
                             >
 
                                 ORDER:
@@ -1408,89 +1326,51 @@ function renderOrders() {
 
                             </span>
 
-
                         </div>
 
 
                         <div class="actions">
 
-
                             <button
                                 class="pending-btn"
-
-                                onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'pending'
-                                    )
-                                "
+                                onclick="changeFulfillment(${order.id}, 'pending')"
                             >
-
                                 Pending
-
                             </button>
 
 
                             <button
                                 class="processing-btn"
-
                                 ${!paid
                                     ? "disabled"
                                     : ""
                                 }
-
-                                onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'processing'
-                                    )
-                                "
+                                onclick="changeFulfillment(${order.id}, 'processing')"
                             >
-
                                 Processing
-
                             </button>
 
 
                             <button
                                 class="complete-btn"
-
                                 ${!paid
                                     ? "disabled"
                                     : ""
                                 }
-
-                                onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'completed'
-                                    )
-                                "
+                                onclick="changeFulfillment(${order.id}, 'completed')"
                             >
-
                                 ✓ Completed
-
                             </button>
 
 
                             <button
                                 class="cancel-btn"
-
-                                onclick="
-                                    changeFulfillment(
-                                        ${order.id},
-                                        'cancelled'
-                                    )
-                                "
+                                onclick="changeFulfillment(${order.id}, 'cancelled')"
                             >
-
                                 Cancel
-
                             </button>
 
-
                         </div>
-
 
                     </div>
 
@@ -1498,14 +1378,12 @@ function renderOrders() {
                     <div class="reference">
 
                         Paystack Reference:
-
                         ${escapeHtml(
                             order.payment_reference ||
                             "-"
                         )}
 
                     </div>
-
 
                 </article>
 
@@ -1518,7 +1396,7 @@ function renderOrders() {
 
 
 /* =========================================================
-   SAVE SUPPLIER COST
+   SUPPLIER COST
 ========================================================= */
 
 async function saveSupplierCost(
@@ -1531,41 +1409,41 @@ async function saveSupplierCost(
         );
 
 
-    const supplierCost =
-        Number(
-            input.value
-        );
-
-
     if (
-        input.value.trim() === "" ||
-        !Number.isFinite(
-            supplierCost
-        ) ||
-        supplierCost < 0
+        input.value.trim() ===
+        ""
     ) {
 
         alert(
-            "Enter a valid supplier cost."
+            "Enter supplier cost."
         );
 
         return;
     }
 
 
+    const supplierCost =
+        Number(
+            input.value
+        );
+
+
     try {
 
         const response =
             await fetch(
-
                 `/api/admin/orders/${orderId}/supplier-cost`,
-
                 {
                     method: "PATCH",
 
                     headers: {
+
                         "Content-Type":
-                            "application/json"
+                            "application/json",
+
+                        "X-CSRF-Token":
+                            csrfToken
+
                     },
 
                     body:
@@ -1581,13 +1459,25 @@ async function saveSupplierCost(
 
 
         if (
+            response.status ===
+            401
+        ) {
+
+            window.location.href =
+                "/admin/login";
+
+            return;
+        }
+
+
+        if (
             !response.ok ||
             !result.success
         ) {
 
             throw new Error(
                 result.error ||
-                "Unable to save cost."
+                "Unable to save."
             );
         }
 
@@ -1627,15 +1517,19 @@ async function changeFulfillment(
 
         const response =
             await fetch(
-
                 `/api/admin/orders/${orderId}/fulfillment`,
-
                 {
-                    method: "PATCH",
+                    method:
+                        "PATCH",
 
                     headers: {
+
                         "Content-Type":
-                            "application/json"
+                            "application/json",
+
+                        "X-CSRF-Token":
+                            csrfToken
+
                     },
 
                     body:
@@ -1648,6 +1542,18 @@ async function changeFulfillment(
 
         const result =
             await response.json();
+
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            window.location.href =
+                "/admin/login";
+
+            return;
+        }
 
 
         if (
@@ -1670,6 +1576,36 @@ async function changeFulfillment(
         alert(
             error.message
         );
+    }
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function logout() {
+
+    try {
+
+        await fetch(
+            "/api/admin/logout",
+            {
+                method: "POST",
+
+                headers: {
+
+                    "X-CSRF-Token":
+                        csrfToken
+
+                }
+            }
+        );
+
+    } finally {
+
+        window.location.href =
+            "/admin/login";
     }
 }
 
@@ -1746,10 +1682,28 @@ function formatDate(value) {
 }
 
 
-loadOrders();
+/* =========================================================
+   START
+========================================================= */
+
+async function startAdmin() {
+
+    const loggedIn =
+        await loadSession();
+
+
+    if (
+        loggedIn
+    ) {
+
+        await loadOrders();
+    }
+}
+
+
+startAdmin();
 
 </script>
-
 
 </body>
 
