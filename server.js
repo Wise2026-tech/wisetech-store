@@ -31,7 +31,7 @@ const PORT = process.env.PORT || 3000;
 
 
 /* =========================================================
-   WISETECH PRODUCT CATALOGUE
+   WISETECH PRODUCTS
 ========================================================= */
 
 const products = [
@@ -206,7 +206,7 @@ const products = [
     },
 
 
-    /* ================= YOUTUBE PREMIUM ================= */
+    /* ================= YOUTUBE ================= */
 
     {
         id: "youtube-student",
@@ -427,7 +427,7 @@ const products = [
     },
 
 
-    /* ================= PRIME VIDEO ================= */
+    /* ================= PRIME ================= */
 
     {
         id: "prime-ghana",
@@ -477,14 +477,14 @@ const products = [
 
 
 /* =========================================================
-   HELPERS
+   GENERAL HELPERS
 ========================================================= */
 
-function getProduct(productId) {
+function getProduct(id) {
 
     return products.find(
         product =>
-            product.id === productId
+            product.id === id
     );
 }
 
@@ -503,20 +503,528 @@ function getBaseUrl(req) {
 
 
 /* =========================================================
-   PAYSTACK PAYMENT VERIFICATION
+   ADMIN SESSION SYSTEM
 ========================================================= */
 
-async function verifyPayment(reference) {
+const SESSION_COOKIE =
+    "wisetech_admin_session";
 
-    const response = await fetch(
-        `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-            }
+
+const SESSION_DURATION =
+    8 * 60 * 60 * 1000; // 8 hours
+
+
+function base64UrlEncode(value) {
+
+    return Buffer
+        .from(value)
+        .toString("base64url");
+}
+
+
+function base64UrlDecode(value) {
+
+    return Buffer
+        .from(
+            value,
+            "base64url"
+        )
+        .toString("utf8");
+}
+
+
+function signSession(payload) {
+
+    const encoded =
+        base64UrlEncode(
+            JSON.stringify(payload)
+        );
+
+
+    const signature =
+        crypto
+            .createHmac(
+                "sha256",
+                process.env
+                    .ADMIN_SESSION_SECRET
+            )
+            .update(encoded)
+            .digest("base64url");
+
+
+    return `${encoded}.${signature}`;
+}
+
+
+function verifySession(token) {
+
+    try {
+
+        if (
+            typeof token !==
+            "string"
+        ) {
+
+            return null;
         }
+
+
+        const parts =
+            token.split(".");
+
+
+        if (
+            parts.length !== 2
+        ) {
+
+            return null;
+        }
+
+
+        const [
+            encoded,
+            providedSignature
+        ] = parts;
+
+
+        const expectedSignature =
+            crypto
+                .createHmac(
+                    "sha256",
+                    process.env
+                        .ADMIN_SESSION_SECRET
+                )
+                .update(encoded)
+                .digest("base64url");
+
+
+        const a =
+            Buffer.from(
+                providedSignature
+            );
+
+
+        const b =
+            Buffer.from(
+                expectedSignature
+            );
+
+
+        if (
+            a.length !== b.length ||
+            !crypto.timingSafeEqual(
+                a,
+                b
+            )
+        ) {
+
+            return null;
+        }
+
+
+        const payload =
+            JSON.parse(
+                base64UrlDecode(
+                    encoded
+                )
+            );
+
+
+        if (
+            !payload.exp ||
+            Date.now() >
+                payload.exp
+        ) {
+
+            return null;
+        }
+
+
+        return payload;
+
+
+    } catch {
+
+        return null;
+    }
+}
+
+
+function parseCookies(req) {
+
+    const cookies = {};
+
+    const header =
+        req.headers.cookie;
+
+
+    if (!header) {
+
+        return cookies;
+    }
+
+
+    for (
+        const pair of
+        header.split(";")
+    ) {
+
+        const index =
+            pair.indexOf("=");
+
+
+        if (
+            index === -1
+        ) {
+
+            continue;
+        }
+
+
+        const key =
+            pair
+                .slice(0, index)
+                .trim();
+
+
+        const value =
+            pair
+                .slice(index + 1)
+                .trim();
+
+
+        cookies[key] =
+            decodeURIComponent(
+                value
+            );
+    }
+
+
+    return cookies;
+}
+
+
+function getAdminSession(req) {
+
+    const cookies =
+        parseCookies(req);
+
+
+    const token =
+        cookies[
+            SESSION_COOKIE
+        ];
+
+
+    return verifySession(
+        token
     );
+}
+
+
+function setAdminSession(
+    res,
+    payload
+) {
+
+    const token =
+        signSession(
+            payload
+        );
+
+
+    const secure =
+        process.env.NODE_ENV ===
+        "production";
+
+
+    const parts = [
+
+        `${SESSION_COOKIE}=${encodeURIComponent(token)}`,
+
+        "Path=/",
+
+        "HttpOnly",
+
+        "SameSite=Strict",
+
+        `Max-Age=${Math.floor(
+            SESSION_DURATION / 1000
+        )}`
+
+    ];
+
+
+    if (secure) {
+
+        parts.push(
+            "Secure"
+        );
+    }
+
+
+    res.setHeader(
+        "Set-Cookie",
+        parts.join("; ")
+    );
+}
+
+
+function clearAdminSession(
+    res
+) {
+
+    const secure =
+        process.env.NODE_ENV ===
+        "production";
+
+
+    const parts = [
+
+        `${SESSION_COOKIE}=`,
+
+        "Path=/",
+
+        "HttpOnly",
+
+        "SameSite=Strict",
+
+        "Max-Age=0"
+
+    ];
+
+
+    if (secure) {
+
+        parts.push(
+            "Secure"
+        );
+    }
+
+
+    res.setHeader(
+        "Set-Cookie",
+        parts.join("; ")
+    );
+}
+
+
+function safeCompare(
+    supplied,
+    expected
+) {
+
+    if (
+        typeof supplied !==
+            "string" ||
+
+        typeof expected !==
+            "string"
+    ) {
+
+        return false;
+    }
+
+
+    const first =
+        Buffer.from(
+            supplied
+        );
+
+
+    const second =
+        Buffer.from(
+            expected
+        );
+
+
+    if (
+        first.length !==
+        second.length
+    ) {
+
+        return false;
+    }
+
+
+    return crypto
+        .timingSafeEqual(
+            first,
+            second
+        );
+}
+
+
+function requireAdmin(
+    req,
+    res,
+    next
+) {
+
+    const session =
+        getAdminSession(
+            req
+        );
+
+
+    if (!session) {
+
+        if (
+            req.path.startsWith(
+                "/api/"
+            )
+        ) {
+
+            return res
+                .status(401)
+                .json({
+                    success: false,
+                    error:
+                        "Admin login required."
+                });
+        }
+
+
+        return res.redirect(
+            "/admin/login"
+        );
+    }
+
+
+    req.adminSession =
+        session;
+
+
+    return next();
+}
+
+
+function requireCsrf(
+    req,
+    res,
+    next
+) {
+
+    const session =
+        req.adminSession ||
+        getAdminSession(req);
+
+
+    const supplied =
+        req.headers[
+            "x-csrf-token"
+        ];
+
+
+    if (
+        !session ||
+        !supplied ||
+        !safeCompare(
+            supplied,
+            session.csrf
+        )
+    ) {
+
+        return res
+            .status(403)
+            .json({
+                success: false,
+                error:
+                    "Security check failed."
+            });
+    }
+
+
+    return next();
+}
+
+
+/* =========================================================
+   SIMPLE LOGIN RATE LIMIT
+========================================================= */
+
+const loginAttempts =
+    new Map();
+
+
+function loginAllowed(ip) {
+
+    const now =
+        Date.now();
+
+
+    const record =
+        loginAttempts.get(ip);
+
+
+    if (
+        !record ||
+        now - record.started >
+            15 * 60 * 1000
+    ) {
+
+        loginAttempts.set(
+            ip,
+            {
+                count: 0,
+                started: now
+            }
+        );
+
+
+        return true;
+    }
+
+
+    return record.count < 10;
+}
+
+
+function recordFailedLogin(ip) {
+
+    const record =
+        loginAttempts.get(ip) || {
+            count: 0,
+            started: Date.now()
+        };
+
+
+    record.count += 1;
+
+
+    loginAttempts.set(
+        ip,
+        record
+    );
+}
+
+
+function clearLoginAttempts(ip) {
+
+    loginAttempts.delete(ip);
+}
+
+
+/* =========================================================
+   PAYSTACK VERIFICATION
+========================================================= */
+
+async function verifyPayment(
+    reference
+) {
+
+    const response =
+        await fetch(
+            `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+            {
+                headers: {
+
+                    Authorization:
+                        `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+
+                }
+            }
+        );
 
 
     const result =
@@ -555,23 +1063,25 @@ async function verifyPayment(reference) {
 
     const expectedAmount =
         Math.round(
-            Number(order.amount) * 100
+            Number(
+                order.amount
+            ) * 100
         );
 
 
-    const validPayment =
-
+    const valid =
         transaction.status ===
             "success" &&
 
-        Number(transaction.amount) ===
-            expectedAmount &&
+        Number(
+            transaction.amount
+        ) === expectedAmount &&
 
         transaction.currency ===
             "GHS";
 
 
-    if (!validPayment) {
+    if (!valid) {
 
         return {
             success: false
@@ -579,26 +1089,11 @@ async function verifyPayment(reference) {
     }
 
 
-    /*
-        Paystack reports transaction fees
-        in pesewas.
-
-        Convert to Ghana cedis.
-    */
-
-    const feeInPesewas =
+    const fee =
         Number(
             transaction.fees || 0
-        );
+        ) / 100;
 
-
-    const feeInGhs =
-        feeInPesewas / 100;
-
-
-    /*
-        Only process a successful payment once.
-    */
 
     if (
         order.payment_status !==
@@ -607,51 +1102,38 @@ async function verifyPayment(reference) {
 
         await markOrderPaid(
             order.id,
-            feeInGhs
+            fee
         );
 
 
-        const paidOrder =
+        const updated =
             await findOrderById(
                 order.id
             );
 
 
-        /*
-            Email failure must never change
-            payment status.
-        */
-
         sendPaymentReceivedEmail(
-            paidOrder
+            updated
         )
         .catch(
-            error => {
-
+            error =>
                 console.error(
-                    "Payment confirmation email:",
+                    "Payment email:",
                     error
-                );
-
-            }
+                )
         );
     }
 
 
     return {
-
         success: true,
-
-        orderId:
-            order.id
-
+        orderId: order.id
     };
 }
 
 
 /* =========================================================
    PAYSTACK WEBHOOK
-   MUST APPEAR BEFORE express.json()
 ========================================================= */
 
 app.post(
@@ -673,9 +1155,8 @@ app.post(
 
             if (!signature) {
 
-                return res.sendStatus(
-                    401
-                );
+                return res
+                    .sendStatus(401);
             }
 
 
@@ -686,30 +1167,25 @@ app.post(
                         process.env
                             .PAYSTACK_SECRET_KEY
                     )
-                    .update(
-                        req.body
-                    )
-                    .digest(
-                        "hex"
-                    );
+                    .update(req.body)
+                    .digest("hex");
 
 
             if (
-                hash !==
-                signature
+                hash !== signature
             ) {
 
-                return res.sendStatus(
-                    401
-                );
+                return res
+                    .sendStatus(401);
             }
 
 
             const event =
                 JSON.parse(
-                    req.body.toString(
-                        "utf8"
-                    )
+                    req.body
+                        .toString(
+                            "utf8"
+                        )
                 );
 
 
@@ -721,47 +1197,54 @@ app.post(
                 try {
 
                     await verifyPayment(
-                        event.data.reference
+                        event.data
+                            .reference
                     );
 
                 } catch (error) {
 
                     console.error(
-                        "Webhook payment verification:",
+                        "Webhook verification:",
                         error.message
                     );
                 }
             }
 
 
-            return res.sendStatus(
-                200
-            );
+            return res
+                .sendStatus(200);
 
 
         } catch (error) {
 
             console.error(
-                "Paystack webhook:",
+                "Webhook:",
                 error
             );
 
 
-            return res.sendStatus(
-                500
-            );
+            return res
+                .sendStatus(500);
         }
     }
 );
 
 
 /* =========================================================
-   EXPRESS MIDDLEWARE
+   NORMAL MIDDLEWARE
 ========================================================= */
 
 app.use(
     express.json({
         limit: "100kb"
+    })
+);
+
+
+app.use(
+    express.urlencoded({
+        extended: false,
+        limit: "20kb"
     })
 );
 
@@ -777,18 +1260,13 @@ app.use(
 
 
 /* =========================================================
-   PRODUCTS API
+   PRODUCTS
 ========================================================= */
 
 app.get(
     "/api/products",
 
     (req, res) => {
-
-        /*
-            Never expose supplier costs
-            to website customers.
-        */
 
         const publicProducts =
             products.map(
@@ -807,7 +1285,7 @@ app.get(
 
 
 /* =========================================================
-   INITIALIZE PAYSTACK PAYMENT
+   PAYSTACK INITIALIZATION
 ========================================================= */
 
 app.post(
@@ -833,7 +1311,9 @@ app.post(
                     "string" ||
 
                 typeof email !==
-                    "string"
+                    "string" ||
+
+                !Array.isArray(items)
             ) {
 
                 return res
@@ -841,7 +1321,7 @@ app.post(
                     .json({
                         success: false,
                         error:
-                            "Invalid customer information."
+                            "Invalid order information."
                     });
             }
 
@@ -849,35 +1329,28 @@ app.post(
             const cleanName =
                 customerName
                     .trim()
-                    .slice(
-                        0,
-                        100
-                    );
+                    .slice(0, 100);
 
 
             const cleanPhone =
                 phone
                     .trim()
-                    .slice(
-                        0,
-                        30
-                    );
+                    .slice(0, 30);
 
 
             const cleanEmail =
                 email
                     .trim()
                     .toLowerCase()
-                    .slice(
-                        0,
-                        150
-                    );
+                    .slice(0, 150);
 
 
             if (
                 !cleanName ||
                 !cleanPhone ||
-                !cleanEmail
+                !cleanEmail ||
+                items.length === 0 ||
+                items.length > 20
             ) {
 
                 return res
@@ -885,29 +1358,7 @@ app.post(
                     .json({
                         success: false,
                         error:
-                            "Please enter your name, phone and email."
-                    });
-            }
-
-
-            if (
-                !Array.isArray(
-                    items
-                ) ||
-
-                items.length ===
-                    0 ||
-
-                items.length >
-                    20
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-                        success: false,
-                        error:
-                            "Invalid cart."
+                            "Please check your order details."
                     });
             }
 
@@ -917,29 +1368,11 @@ app.post(
 
 
             for (
-                const productId
-                of items
+                const id of items
             ) {
 
-                if (
-                    typeof productId !==
-                    "string"
-                ) {
-
-                    return res
-                        .status(400)
-                        .json({
-                            success: false,
-                            error:
-                                "Invalid product."
-                        });
-                }
-
-
                 const product =
-                    getProduct(
-                        productId
-                    );
+                    getProduct(id);
 
 
                 if (!product) {
@@ -960,40 +1393,26 @@ app.post(
             }
 
 
-            /*
-                Customer price calculated
-                only on the server.
-            */
-
             const total =
-                selectedProducts.reduce(
-                    (
-                        sum,
-                        product
-                    ) =>
-                        sum +
-                        Number(
-                            product.price
-                        ),
-                    0
-                );
+                selectedProducts
+                    .reduce(
+                        (
+                            sum,
+                            product
+                        ) =>
+                            sum +
+                            Number(
+                                product.price
+                            ),
+                        0
+                    );
 
-
-            /*
-                Automatically calculate supplier
-                cost when every item has a known cost.
-
-                Premium subscriptions can be entered
-                later from the admin dashboard.
-            */
 
             const allCostsKnown =
                 selectedProducts.every(
                     product =>
-                        product.cost !==
-                            null &&
-                        product.cost !==
-                            undefined
+                        product.cost !== null &&
+                        product.cost !== undefined
                 );
 
 
@@ -1063,12 +1482,6 @@ app.post(
             );
 
 
-            const amountInPesewas =
-                Math.round(
-                    total * 100
-                );
-
-
             const callbackUrl =
                 `${getBaseUrl(req)}/api/paystack/callback`;
 
@@ -1077,8 +1490,7 @@ app.post(
                 await fetch(
                     "https://api.paystack.co/transaction/initialize",
                     {
-                        method:
-                            "POST",
+                        method: "POST",
 
                         headers: {
 
@@ -1097,8 +1509,11 @@ app.post(
                                     cleanEmail,
 
                                 amount:
-                                    amountInPesewas
-                                        .toString(),
+                                    String(
+                                        Math.round(
+                                            total * 100
+                                        )
+                                    ),
 
                                 currency:
                                     "GHS",
@@ -1116,14 +1531,7 @@ app.post(
                                         cleanName,
 
                                     phone:
-                                        cleanPhone,
-
-                                    items:
-                                        selectedProducts
-                                            .map(
-                                                product =>
-                                                    product.id
-                                            )
+                                        cleanPhone
 
                                 }
 
@@ -1142,17 +1550,10 @@ app.post(
                 !paystack.status
             ) {
 
-                console.error(
-                    "Paystack initialization:",
-                    paystack
-                );
-
-
                 return res
                     .status(500)
                     .json({
                         success: false,
-
                         error:
                             paystack.message ||
                             "Unable to start payment."
@@ -1162,10 +1563,7 @@ app.post(
 
             return res.json({
 
-                success:
-                    true,
-
-                orderId,
+                success: true,
 
                 reference,
 
@@ -1188,7 +1586,6 @@ app.post(
                 .status(500)
                 .json({
                     success: false,
-
                     error:
                         "Unable to initialize payment."
                 });
@@ -1206,23 +1603,23 @@ app.get(
 
     async (req, res) => {
 
-        const reference =
-            req.query.reference;
-
-
-        if (
-            typeof reference !==
-                "string" ||
-            !reference
-        ) {
-
-            return res.redirect(
-                "/?payment=error"
-            );
-        }
-
-
         try {
+
+            const reference =
+                req.query.reference;
+
+
+            if (
+                typeof reference !==
+                    "string" ||
+                !reference
+            ) {
+
+                return res.redirect(
+                    "/?payment=error"
+                );
+            }
+
 
             const result =
                 await verifyPayment(
@@ -1241,14 +1638,14 @@ app.get(
 
 
             return res.redirect(
-                `/?payment=failed&reference=${encodeURIComponent(reference)}`
+                "/?payment=failed"
             );
 
 
         } catch (error) {
 
             console.error(
-                "Callback verification:",
+                "Callback:",
                 error
             );
 
@@ -1283,9 +1680,7 @@ app.get(
                 return res
                     .status(404)
                     .json({
-                        success: false,
-                        error:
-                            "Order not found."
+                        success: false
                     });
             }
 
@@ -1296,19 +1691,12 @@ app.get(
             });
 
 
-        } catch (error) {
-
-            console.error(
-                "Order status:",
-                error
-            );
-
+        } catch {
 
             return res
                 .status(500)
                 .json({
-                    success:
-                        false
+                    success: false
                 });
         }
     }
@@ -1316,126 +1704,75 @@ app.get(
 
 
 /* =========================================================
-   ADMIN SECURITY
+   ADMIN LOGIN PAGE
 ========================================================= */
 
-function safeCompare(
-    supplied,
-    expected
-) {
+app.get(
+    "/admin/login",
 
-    if (
-        typeof supplied !==
-            "string" ||
-
-        typeof expected !==
-            "string"
-    ) {
-
-        return false;
-    }
-
-
-    const first =
-        Buffer.from(
-            supplied
-        );
-
-
-    const second =
-        Buffer.from(
-            expected
-        );
-
-
-    if (
-        first.length !==
-        second.length
-    ) {
-
-        return false;
-    }
-
-
-    return crypto
-        .timingSafeEqual(
-            first,
-            second
-        );
-}
-
-
-function adminAuth(
-    req,
-    res,
-    next
-) {
-
-    const auth =
-        req.headers
-            .authorization;
-
-
-    if (
-        !auth ||
-        !auth.startsWith(
-            "Basic "
-        )
-    ) {
-
-        res.setHeader(
-            "WWW-Authenticate",
-            'Basic realm="WISETECH Admin"'
-        );
-
-
-        return res
-            .status(401)
-            .send(
-                "WISETECH Admin Login Required"
-            );
-    }
-
-
-    try {
-
-        const decoded =
-            Buffer
-                .from(
-                    auth.slice(6),
-                    "base64"
-                )
-                .toString(
-                    "utf8"
-                );
-
-
-        const separator =
-            decoded.indexOf(
-                ":"
-            );
-
+    (req, res) => {
 
         if (
-            separator === -1
+            getAdminSession(req)
         ) {
 
-            throw new Error(
-                "Invalid login."
+            return res.redirect(
+                "/admin"
             );
         }
 
 
+        return res.sendFile(
+            path.join(
+                __dirname,
+                "admin-login.html"
+            )
+        );
+    }
+);
+
+
+/* =========================================================
+   ADMIN LOGIN API
+========================================================= */
+
+app.post(
+    "/api/admin/login",
+
+    (req, res) => {
+
+        const ip =
+            req.ip ||
+            req.socket
+                .remoteAddress ||
+            "unknown";
+
+
+        if (
+            !loginAllowed(ip)
+        ) {
+
+            return res
+                .status(429)
+                .json({
+                    success: false,
+                    error:
+                        "Too many login attempts. Try again later."
+                });
+        }
+
+
         const username =
-            decoded.slice(
-                0,
-                separator
+            String(
+                req.body.username ||
+                ""
             );
 
 
         const password =
-            decoded.slice(
-                separator + 1
+            String(
+                req.body.password ||
+                ""
             );
 
 
@@ -1460,30 +1797,49 @@ function adminAuth(
             !validPassword
         ) {
 
-            throw new Error(
-                "Invalid login."
+            recordFailedLogin(
+                ip
             );
+
+
+            return res
+                .status(401)
+                .json({
+                    success: false,
+                    error:
+                        "Invalid username or password."
+                });
         }
 
 
-        return next();
-
-
-    } catch {
-
-        res.setHeader(
-            "WWW-Authenticate",
-            'Basic realm="WISETECH Admin"'
+        clearLoginAttempts(
+            ip
         );
 
 
-        return res
-            .status(401)
-            .send(
-                "Invalid admin login."
-            );
+        const csrf =
+            crypto
+                .randomBytes(32)
+                .toString("hex");
+
+
+        setAdminSession(
+            res,
+            {
+                username,
+                csrf,
+                exp:
+                    Date.now() +
+                    SESSION_DURATION
+            }
+        );
+
+
+        return res.json({
+            success: true
+        });
     }
-}
+);
 
 
 /* =========================================================
@@ -1493,7 +1849,7 @@ function adminAuth(
 app.get(
     "/admin",
 
-    adminAuth,
+    requireAdmin,
 
     (req, res) => {
 
@@ -1508,13 +1864,60 @@ app.get(
 
 
 /* =========================================================
+   ADMIN SESSION INFO
+========================================================= */
+
+app.get(
+    "/api/admin/session",
+
+    requireAdmin,
+
+    (req, res) => {
+
+        return res.json({
+
+            success: true,
+
+            csrfToken:
+                req.adminSession.csrf
+
+        });
+    }
+);
+
+
+/* =========================================================
+   ADMIN LOGOUT
+========================================================= */
+
+app.post(
+    "/api/admin/logout",
+
+    requireAdmin,
+    requireCsrf,
+
+    (req, res) => {
+
+        clearAdminSession(
+            res
+        );
+
+
+        return res.json({
+            success: true
+        });
+    }
+);
+
+
+/* =========================================================
    ADMIN ORDERS
 ========================================================= */
 
 app.get(
     "/api/admin/orders",
 
-    adminAuth,
+    requireAdmin,
 
     async (req, res) => {
 
@@ -1541,9 +1944,7 @@ app.get(
             return res
                 .status(500)
                 .json({
-                    success: false,
-                    error:
-                        "Unable to load orders."
+                    success: false
                 });
         }
     }
@@ -1551,13 +1952,14 @@ app.get(
 
 
 /* =========================================================
-   ADMIN — UPDATE SUPPLIER COST
+   ADMIN SUPPLIER COST
 ========================================================= */
 
 app.patch(
     "/api/admin/orders/:id/supplier-cost",
 
-    adminAuth,
+    requireAdmin,
+    requireCsrf,
 
     async (req, res) => {
 
@@ -1571,7 +1973,8 @@ app.patch(
 
             const supplierCost =
                 Number(
-                    req.body.supplierCost
+                    req.body
+                        .supplierCost
                 );
 
 
@@ -1579,25 +1982,10 @@ app.patch(
                 !Number.isInteger(
                     orderId
                 ) ||
-
-                orderId <= 0
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-                        success: false,
-                        error:
-                            "Invalid order."
-                    });
-            }
-
-
-            if (
+                orderId <= 0 ||
                 !Number.isFinite(
                     supplierCost
                 ) ||
-
                 supplierCost < 0
             ) {
 
@@ -1606,7 +1994,7 @@ app.patch(
                     .json({
                         success: false,
                         error:
-                            "Enter a valid supplier cost."
+                            "Invalid supplier cost."
                     });
             }
 
@@ -1623,9 +2011,7 @@ app.patch(
                 return res
                     .status(404)
                     .json({
-                        success: false,
-                        error:
-                            "Order not found."
+                        success: false
                     });
             }
 
@@ -1636,20 +2022,12 @@ app.patch(
             });
 
 
-        } catch (error) {
-
-            console.error(
-                "Supplier cost:",
-                error
-            );
-
+        } catch {
 
             return res
                 .status(500)
                 .json({
-                    success: false,
-                    error:
-                        "Unable to update supplier cost."
+                    success: false
                 });
         }
     }
@@ -1657,13 +2035,14 @@ app.patch(
 
 
 /* =========================================================
-   ADMIN — FULFILLMENT + EMAIL NOTIFICATIONS
+   ADMIN FULFILLMENT
 ========================================================= */
 
 app.patch(
     "/api/admin/orders/:id/fulfillment",
 
-    adminAuth,
+    requireAdmin,
+    requireCsrf,
 
     async (req, res) => {
 
@@ -1675,12 +2054,11 @@ app.patch(
                 );
 
 
-            const {
-                status
-            } = req.body;
+            const status =
+                req.body.status;
 
 
-            const allowedStatuses = [
+            const allowed = [
                 "pending",
                 "processing",
                 "completed",
@@ -1692,8 +2070,9 @@ app.patch(
                 !Number.isInteger(
                     orderId
                 ) ||
-
-                orderId <= 0
+                !allowed.includes(
+                    status
+                )
             ) {
 
                 return res
@@ -1701,50 +2080,26 @@ app.patch(
                     .json({
                         success: false,
                         error:
-                            "Invalid order."
+                            "Invalid request."
                     });
             }
 
 
-            if (
-                !allowedStatuses
-                    .includes(
-                        status
-                    )
-            ) {
-
-                return res
-                    .status(400)
-                    .json({
-                        success: false,
-                        error:
-                            "Invalid fulfillment status."
-                    });
-            }
-
-
-            const existingOrder =
+            const existing =
                 await findOrderById(
                     orderId
                 );
 
 
-            if (!existingOrder) {
+            if (!existing) {
 
                 return res
                     .status(404)
                     .json({
-                        success: false,
-                        error:
-                            "Order not found."
+                        success: false
                     });
             }
 
-
-            /*
-                Only PAID orders can be
-                Processing or Completed.
-            */
 
             if (
                 (
@@ -1754,8 +2109,7 @@ app.patch(
                     status ===
                         "completed"
                 ) &&
-
-                existingOrder
+                existing
                     .payment_status !==
                     "paid"
             ) {
@@ -1770,49 +2124,25 @@ app.patch(
             }
 
 
-            /*
-                Don't resend emails when the
-                same status is selected again.
-            */
-
             if (
-                existingOrder
+                existing
                     .fulfillment_status ===
                 status
             ) {
 
                 return res.json({
                     success: true,
-                    order:
-                        existingOrder,
-                    message:
-                        "Order already has this status."
+                    order: existing
                 });
             }
 
 
-            const updatedOrder =
+            const updated =
                 await updateFulfillmentStatus(
                     orderId,
                     status
                 );
 
-
-            if (!updatedOrder) {
-
-                return res
-                    .status(404)
-                    .json({
-                        success: false,
-                        error:
-                            "Order could not be updated."
-                    });
-            }
-
-
-            /*
-                Send appropriate customer email.
-            */
 
             if (
                 status ===
@@ -1820,17 +2150,9 @@ app.patch(
             ) {
 
                 sendProcessingEmail(
-                    updatedOrder
-                )
-                .catch(
-                    error => {
-
-                        console.error(
-                            "Processing email:",
-                            error
-                        );
-
-                    }
+                    updated
+                ).catch(
+                    console.error
                 );
             }
 
@@ -1841,17 +2163,9 @@ app.patch(
             ) {
 
                 sendCompletedEmail(
-                    updatedOrder
-                )
-                .catch(
-                    error => {
-
-                        console.error(
-                            "Completed email:",
-                            error
-                        );
-
-                    }
+                    updated
+                ).catch(
+                    console.error
                 );
             }
 
@@ -1862,32 +2176,23 @@ app.patch(
             ) {
 
                 sendCancelledEmail(
-                    updatedOrder
-                )
-                .catch(
-                    error => {
-
-                        console.error(
-                            "Cancelled email:",
-                            error
-                        );
-
-                    }
+                    updated
+                ).catch(
+                    console.error
                 );
             }
 
 
             return res.json({
                 success: true,
-                order:
-                    updatedOrder
+                order: updated
             });
 
 
         } catch (error) {
 
             console.error(
-                "Fulfillment update:",
+                "Fulfillment:",
                 error
             );
 
@@ -1895,9 +2200,7 @@ app.patch(
             return res
                 .status(500)
                 .json({
-                    success: false,
-                    error:
-                        "Unable to update order."
+                    success: false
                 });
         }
     }
@@ -1905,7 +2208,7 @@ app.patch(
 
 
 /* =========================================================
-   WEBSITE FALLBACK
+   WEBSITE
 ========================================================= */
 
 app.get(
@@ -1925,46 +2228,43 @@ app.get(
 
 
 /* =========================================================
-   START WISETECH
+   START
 ========================================================= */
 
 async function startServer() {
 
     try {
 
-        if (
-            !process.env
-                .DATABASE_URL
+        const requiredVariables = [
+
+            "DATABASE_URL",
+
+            "PAYSTACK_SECRET_KEY",
+
+            "ADMIN_USERNAME",
+
+            "ADMIN_PASSWORD",
+
+            "ADMIN_SESSION_SECRET"
+
+        ];
+
+
+        for (
+            const variable
+            of requiredVariables
         ) {
 
-            throw new Error(
-                "DATABASE_URL is missing."
-            );
-        }
+            if (
+                !process.env[
+                    variable
+                ]
+            ) {
 
-
-        if (
-            !process.env
-                .PAYSTACK_SECRET_KEY
-        ) {
-
-            throw new Error(
-                "PAYSTACK_SECRET_KEY is missing."
-            );
-        }
-
-
-        if (
-            !process.env
-                .ADMIN_USERNAME ||
-
-            !process.env
-                .ADMIN_PASSWORD
-        ) {
-
-            throw new Error(
-                "Admin credentials are missing."
-            );
+                throw new Error(
+                    `${variable} is missing.`
+                );
+            }
         }
 
 
@@ -1979,7 +2279,6 @@ async function startServer() {
                 console.log(
                     `WISETECH running on port ${PORT}`
                 );
-
             }
         );
 
